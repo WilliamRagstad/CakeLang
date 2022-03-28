@@ -30,11 +30,15 @@ def compile(filepath: str):
         print(f"The specified file '{filename}' was not a valid cake file. Must end with .cake or .c")
         sys.exit(1)
     print(f"Compiling '{filename}'...")
-    tokens = tokenize(filepath)
-    printTokens(tokens)
-    program = parse(tokens)
-    print("=== AST ===")
-    print(program)
+    try:
+        tokens = tokenize(filepath)
+        printTokens(tokens)
+        program = parse(tokens)
+        print("=== AST ===")
+        print(program)
+    except Exception as e:
+        print(f"Error in '{filepath}':\n   {e}")
+        sys.exit(1)
 
 # === Main ===
 
