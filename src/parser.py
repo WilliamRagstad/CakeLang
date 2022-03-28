@@ -8,13 +8,19 @@ currentIndex = 0
 
 # === Helper functions ===
 
-def peekToken(offset=0) -> dict:
+def error(message: str, token: dict):
+    raise Exception(f"{message} at line {token['line']}:{token['column']} to {token['lineEnd']}:{token['columnEnd']}.")
+
+def errorExpected(what, got, token: dict):
+    error(f"Expected {what}, got {got}", token)
+
+def peekToken(offset=0, _acc=0) -> dict:
     global currentIndex, tokens
-    if currentIndex + offset >= len(tokens):
+    if currentIndex + _acc + offset >= len(tokens):
         return None
-    t = tokens[currentIndex + offset]
+    t = tokens[currentIndex + _acc + offset]
     if t["type"] == "Comment":
-        return peekToken(offset + 1)
+        return peekToken(offset, _acc + 1)
     return t
 
 def getToken() -> dict:
@@ -31,9 +37,9 @@ def getToken() -> dict:
 def expectNext(type, value = None) -> None:
     t = getToken()
     if t["type"] != type:
-        raise Exception(f"Expected {type}, got {t['type']}")
+        errorExpected(type, t["type"], t)
     if value != None and t["value"] != value:
-        raise Exception(f"Expected {value}, got {t['value']}")
+        errorExpected(value, t["value"], t)
     return None
 
 def checkNext(type, value = None) -> bool:
@@ -49,7 +55,7 @@ def checkNext(type, value = None) -> bool:
 def parse_expression():
     t = getToken()
     if t["type"] not in ["Identifier", "Number", "String"]:
-        raise Exception(f"Expected expression, got {t['type']}")
+        errorExpected("expression", t["type"], t)
     return t
 
 def parse_function_call(functionName) -> dict:
@@ -73,7 +79,7 @@ def parse(_tokens: list) -> dict:
     body = []
     while currentIndex < len(tokens):
         t = getToken()
-        nt = peekToken(1)
+        nt = peekToken()
         # Function call
         if (t["type"] == "Identifier" and
            nt["type"] == "Separator" and
@@ -81,7 +87,7 @@ def parse(_tokens: list) -> dict:
            body.append(parse_function_call(t["value"]))
            continue
         else:
-            raise Exception(f"Expected function call, got {t['type']}")
+            errorExpected("function call", t["type"], t)
 
     return {
         'type': 'Program',
