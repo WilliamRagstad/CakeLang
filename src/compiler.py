@@ -4,6 +4,8 @@ import sys
 from lexer import tokenize
 from parser import parse
 
+# === Global variables ===
+
 VERSION = '0.0.1'
 USAGE = f"""Welcome to Cake lang compiler v{VERSION}! 🎂
 Usage: compiler [options] [file]
@@ -13,6 +15,28 @@ Options:
     -v, --version   Print version information and exit.
     -l, --lint      Lint the source file.
 """
+
+# === Helper functions ===
+
+def printTokens(tokens: list):
+    print("=== Tokens ===")
+    for t in tokens:
+        print(t['type'], "\t", t['value'])
+
+def compile(filepath: str):
+    filepath = filepath.replace('\\', '/')
+    filename = filepath[filepath.index('/') + 1:]
+    if not (filepath.endswith('.cake') or filepath.endswith('.c')):
+        print(f"The specified file '{filename}' was not a valid cake file. Must end with .cake or .c")
+        sys.exit(1)
+    print(f"Compiling '{filename}'...")
+    tokens = tokenize(filepath)
+    printTokens(tokens)
+    program = parse(tokens)
+    print("=== AST ===")
+    print(program)
+
+# === Main ===
 
 def main(args: list):
     if len(args) == 0 or '-h' in args or '--help' in args:
@@ -30,24 +54,6 @@ def main(args: list):
     else:
         print("Unknown option, try -h or --help to show usage.")
         sys.exit(1)
-
-def compile(filepath: str):
-    filepath = filepath.replace('\\', '/')
-    filename = filepath[filepath.index('/') + 1:]
-    if not (filepath.endswith('.cake') or filepath.endswith('.c')):
-        print(f"The specified file '{filename}' was not a valid cake file. Must end with .cake or .c")
-        sys.exit(1)
-    print(f"Compiling '{filename}'...")
-    tokens = tokenize(filepath)
-    printTokens(tokens)
-    program = parse(tokens)
-    print("=== AST ===")
-    print(program)
-
-def printTokens(tokens: list):
-    print("=== Tokens ===")
-    for t in tokens:
-        print(t['type'], "\t", t['value'])
 
 if __name__ == '__main__':
     # Call main with args
