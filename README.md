@@ -40,7 +40,7 @@ macro randomClose() {
     r(type=player, radius= <10)
 }
 
-repeat 3 {
+repeat(3, {
     say(randomClose(), "Hello {@s}!");
 });
 ```
