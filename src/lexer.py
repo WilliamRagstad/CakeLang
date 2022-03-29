@@ -124,7 +124,6 @@ def tokenize(filepath: str) -> list:
     column = 0
     with open(filepath, 'r') as f:
         readNext = True
-        # Find tokens
         c = None
         while True:
             if readNext:
@@ -161,7 +160,7 @@ def tokenize(filepath: str) -> list:
                     'columnEnd': column + 1
                 })
                 continue
-            elif c in ['(', ')', '{', '}', '[', ']', ';', ',']:
+            elif c in ['(', ')', '{', '}', '[', ']', ',']:
                 tokens.append({
                     'type': 'Separator',
                     'value': c,
