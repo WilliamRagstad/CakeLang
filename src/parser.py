@@ -32,13 +32,13 @@ def getToken() -> dict:
     currentIndex += 1
     return t
 
-def expectNext(type, value = None) -> None:
+def expectNext(type, value = None) -> dict:
     t = getToken()
     if t["type"] != type:
         errorExpected(type, t)
     if value != None and t["value"] != value:
         errorExpected(value, t)
-    return None
+    return t
 
 def checkNext(type, value = None) -> bool:
     t = peekToken()
@@ -135,9 +135,11 @@ def parse_expression():
 
 def parse_function_call(startToken) -> dict:
     args = []
+    expectNext("Separator", "(")
     while True:
         print(f"parse_function_call loop: {startToken['value']}")
         if checkNext("Separator", ")"):
+            print(f"parse_function_call: end of args")
             break
         args.append(parse_expression())
         print(f"parse_function_call peek: {startToken['value']}", peekToken())
@@ -154,20 +156,88 @@ def parse_function_call(startToken) -> dict:
         "columnEnd": close["columnEnd"]
     }
 
+def parse_block():
+    statements = []
+    start = expectNext("Separator", "{")
+    while not checkNext("Separator", "}"):
+        statements.append(parse_statement())
+    end = getToken() # Consume the closing brace
+    return {
+        "type": "BlockStatement",
+        "statements": statements,
+        "line": start["line"],
+        "column": start["column"],
+        "lineEnd": end["lineEnd"],
+        "columnEnd": end["columnEnd"]
+    }
+
+def parse_body():
+    if checkNext("Separator", "{"):
+        return parse_block()
+    else:
+        return parse_statement()
+
 def parse_statement():
     t = getToken()
     if t["type"] == "Keyword" and t["value"] == "if":
-        return parse_if_statement()
+        condition = parse_expression()
+        body = parse_body()
+        elseIfs = []
+        elseBody = None
+        while checkNext("Keyword", "else"):
+            getToken() # Consume the else keyword
+            if checkNext("Separator", "if"):
+                getToken() # Consume the if keyword
+                elseIfs.append(parse_body())
+            else:
+                elseBody = parse_body()
+                break
+        end  = body
+        if elseBody != None:
+            end = elseBody
+        elif len(elseIfs) > 0:
+            end = elseIfs[-1]
+        return {
+            "type": "IfStatement",
+            "condition": condition,
+            "body": body,
+            "elseIfs": elseIfs,
+            "else": elseBody,
+            "line": t["line"],
+            "column": t["column"],
+            "lineEnd": end["lineEnd"],
+            "columnEnd": end["columnEnd"]
+        }
     elif t["type"] == "Keyword" and t["value"] == "while":
-        return parse_while_statement()
+        condition = parse_expression()
+        body = parse_body()
+        return {
+            "type": "WhileStatement",
+            "condition": condition,
+            "body": body,
+            "line": t["line"],
+            "column": t["column"],
+            "lineEnd": body["lineEnd"],
+            "columnEnd": body["columnEnd"]
+        }
     elif t["type"] == "Identifier":
         nt = peekToken()
         if nt["type"] == "Separator" and nt["value"] == "(":
             return parse_function_call(t)
-        else:
-            return parse_assignment_statement(t)
-    else:
-        errorExpected("statement", t)
+        elif nt["type"] == "Separator" and nt["value"] == "=":
+            getToken() # Consume the =
+            rhs = parse_expression()
+            return {
+                "type": "AssignmentStatement",
+                "name": t["value"],
+                "value": rhs,
+                "line": t["line"],
+                "column": t["column"],
+                "lineEnd": rhs["lineEnd"],
+                "columnEnd": rhs["columnEnd"]
+            }
+    # Else always throws an error
+    errorExpected("statement", t)
 
 def parse(_tokens: list) -> dict:
     global currentIndex, tokens
@@ -175,16 +245,7 @@ def parse(_tokens: list) -> dict:
     currentIndex = 0
     body = []
     while currentIndex < len(tokens):
-        t = getToken()
-        nt = peekToken()
-        # Function call
-        if (t["type"] == "Identifier" and
-           nt["type"] == "Separator" and
-           nt["value"] == "("):
-           body.append(parse_function_call(t))
-           continue
-        else:
-            errorExpected("function call", t)
+        body.append(parse_statement())
 
     return {
         'type': 'Program',
