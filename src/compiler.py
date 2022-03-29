@@ -7,7 +7,7 @@ from parser import parse
 
 VERSION = '0.0.1'
 USAGE = f"""Welcome to Cake lang compiler v{VERSION}! 🎂
-Usage: compiler [options] [file]
+Usage: compiler (options) [file]
 
 Options:
     -h, --help      Print this help message and exit.
