@@ -1,4 +1,3 @@
-
 # === Global variables ===
 
 tokens = None
@@ -239,16 +238,40 @@ def parse_statement():
     # Else always throws an error
     errorExpected("statement", t)
 
+def parse_import():
+    start = expectNext("Keyword", "import")
+    subjects = []
+    while not checkNext("Keyword", "from"):
+        subjects.append(expectNext("Identifier"))
+        if checkNext("Separator", ","):
+            getToken()
+    getToken() # Consume the from keyword
+    module = expectNext("Identifier")
+    return {
+        "type": "ImportStatement",
+        "subjects": subjects,
+        "module": module,
+        "line": start["line"],
+        "column": start["column"],
+        "lineEnd": module["lineEnd"],
+        "columnEnd": module["columnEnd"]
+    }
+
+
 def parse(_tokens: list) -> dict:
     global currentIndex, tokens
     tokens = _tokens
     currentIndex = 0
+    imports = []
     body = []
     while currentIndex < len(tokens):
+        if checkNext("Keyword", "import"):
+            imports.append(parse_import())
         body.append(parse_statement())
 
     return {
         'type': 'Program',
+        'imports': imports,
         'body': body,
         'lines': tokens[-1]['lineEnd']
     }
