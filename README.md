@@ -35,13 +35,13 @@ The code below is a simple example of how to print hello world to the chat for t
 ```py
 import player from minecraft
 
-macro randomClose() {
+macro randomClose(maxRadius) {
     # Or use minecraft:player
-    r(type=player, radius= <10)
+    r(type=player, radius<=maxRadius)
 }
 
 repeat(3, {
-    say(randomClose(), "Hello {@s}!");
+    say(randomClose(10), "Hello {@s}!");
 });
 ```
 
