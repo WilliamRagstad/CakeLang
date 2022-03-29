@@ -59,7 +59,7 @@ def read_identifier(first: str, f: TextIOWrapper):
             'lineEnd': line,
             'columnEnd': column
         }
-    elif identifier in ['macro', 'function', 'if', 'else', 'while', 'for', 'do', 'switch', 'case', 'default', 'break', 'continue', 'return', 'try', 'catch', 'finally', 'throw', 'new', 'typeof', 'in', 'of']:
+    elif identifier in ['macro', 'function', 'comp', 'if', 'else', 'while', 'for', 'repeat', 'switch', 'case', 'default', 'break', 'continue', 'return', 'try', 'catch', 'finally', 'throw', 'new', 'typeof', 'in', 'of']:
         return {
             'type': 'Keyword',
             'value': identifier,
@@ -151,7 +151,7 @@ def tokenize(filepath: str) -> list:
                 t = read_string(f)
                 tokens.append(t)
                 continue
-            elif c in ['+', '-', '*', '/', '%', '=', '!', '<', '>', '&', '|', '^', '~', '?']:
+            elif c in ['+', '-', '*', '/', '%', '=', '!', '<', '>', ':', '&', '|', '^']:
                 tokens.append({
                     'type': 'Operator',
                     'value': c,
@@ -161,7 +161,7 @@ def tokenize(filepath: str) -> list:
                     'columnEnd': column + 1
                 })
                 continue
-            elif c in ['(', ')', '{', '}', '[', ']', ';', ':', ',']:
+            elif c in ['(', ')', '{', '}', '[', ']', ';', ',']:
                 tokens.append({
                     'type': 'Separator',
                     'value': c,
