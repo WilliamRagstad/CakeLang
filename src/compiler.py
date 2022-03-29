@@ -30,14 +30,17 @@ def compile(filepath: str):
         print(f"The specified file '{filename}' was not a valid cake file. Must end with .cake or .c")
         sys.exit(1)
     print(f"Compiling '{filename}'...")
+    errorType = "Unknown"
     try:
+        errorType = "Syntax"
         tokens = tokenize(filepath)
-        printTokens(tokens)
+        # printTokens(tokens)
+        errorType = "Semantic"
         program = parse(tokens)
         print("=== AST ===")
         print(program)
     except Exception as e:
-        print(f"Error in '{filepath}':\n   {e}")
+        print(f"\n{errorType} Error in '{filepath}':\n    {e}")
         sys.exit(1)
 
 # === Main ===
