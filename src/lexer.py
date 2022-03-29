@@ -59,7 +59,7 @@ def read_identifier(first: str, f: TextIOWrapper):
             'lineEnd': line,
             'columnEnd': column
         }
-    elif identifier in ['macro', 'function', 'comp', 'if', 'else', 'while', 'for', 'repeat', 'switch', 'case', 'default', 'break', 'continue', 'return', 'try', 'catch', 'finally', 'throw', 'new', 'typeof', 'in', 'of']:
+    elif identifier in ['macro', 'function', 'comp', 'if', 'else', 'while', 'for', 'import', 'from', 'as', 'repeat', 'switch', 'case', 'default', 'break', 'continue', 'return', 'try', 'catch', 'finally', 'throw', 'new', 'typeof', 'in', 'of']:
         return {
             'type': 'Keyword',
             'value': identifier,
