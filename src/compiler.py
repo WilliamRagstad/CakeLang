@@ -1,7 +1,9 @@
 from os import write
 import sys
+from checker import check
+from generator import generate
 from lexer import tokenize
-from parser import parse
+from parser import error, parse
 
 # === Global variables ===
 
@@ -36,8 +38,15 @@ def compile(filepath: str):
         # printTokens(tokens)
         errorType = "Semantic"
         program = parse(tokens)
-        print("=== AST ===")
-        print(program)
+        # print("=== AST ===")
+        # print(program)
+        errorType = "Type"
+        check(program)
+        errorType = "Generate"
+        output = generate(program)
+        print("=== Commands ===")
+        print(output)
+        # TOTO: Output to file
     except Exception as e:
         print(f"\n{errorType} Error in '{filepath}':\n    {e}")
         sys.exit(1)
