@@ -1,5 +1,12 @@
 # === Global variables ===
 
+from types.expression import Expression
+from types.function import FunctionCallExpression
+from types.statements import AssignmentStatement, IfStatement, ImportStatement, WhileStatement
+from types.operator import OperatorExpression
+from types.program import Program
+
+
 tokens = None
 currentIndex = 0
 
@@ -51,10 +58,10 @@ def checkNext(type, value = None) -> bool:
 
 def parse_expression():
     t = getToken()
-    print(t)
+    # print(t)
     lhs = None
     if t["type"] == "Separator" and t["value"] == "(":
-        expr = parse_expression()
+        expr: Expression = parse_expression()
         expectNext("Separator", ")")
         lhs = expr
     elif t["type"] == "Identifier":
@@ -62,32 +69,11 @@ def parse_expression():
         if nt["type"] == "Separator" and nt["value"] == "(":
             lhs = parse_function_call(t)
         else:
-            lhs = {
-                "type": "IdentifierExpression",
-                "value": t["value"],
-                "line": t["line"],
-                "column": t["column"],
-                "lineEnd": t["lineEnd"],
-                "columnEnd": t["columnEnd"]
-            }
+            lhs = Expression("IdentifierExpression", t["value"], t["line"], t["column"], t["lineEnd"], t["columnEnd"])
     elif t["type"] == "String":
-        lhs =  {
-            "type": "StringExpression",
-            "value": t["value"],
-            "line": t["line"],
-            "column": t["column"],
-            "lineEnd": t["lineEnd"],
-            "columnEnd": t["columnEnd"]
-        }
+        lhs =  Expression("StringExpression", t["value"], t["line"], t["column"], t["lineEnd"], t["columnEnd"])
     elif t["type"] == "Number":
-        lhs =  {
-            "type": "NumberExpression",
-            "value": t["value"],
-            "line": t["line"],
-            "column": t["column"],
-            "lineEnd": t["lineEnd"],
-            "columnEnd": t["columnEnd"]
-        }
+        lhs =  Expression("NumberExpression", t["value"], t["line"], t["column"], t["lineEnd"], t["columnEnd"])
     else:
         errorExpected("expression", t)
     
@@ -98,62 +84,29 @@ def parse_expression():
         rhs = parse_expression()
         # print(lhs, nt, rhs)
         if nt["value"] == "=":
-            lhs = {
-                "type": "AssignmentExpression",
-                "left": lhs,
-                "right": rhs,
-                "line": lhs["line"],
-                "column": lhs["column"],
-                "lineEnd": rhs["lineEnd"],
-                "columnEnd": rhs["columnEnd"]
-            }
+            lhs = OperatorExpression("AssignmentExpression", None, lhs, rhs, lhs["line"], lhs["column"], rhs["lineEnd"], rhs["columnEnd"])
         elif nt["value"] == ":":
-            lhs = {
-                "type": "MemberExpression",
-                "lhs": lhs,
-                "rhs": rhs,
-                "line": lhs["line"],
-                "column": lhs["column"],
-                "lineEnd": rhs["lineEnd"],
-                "columnEnd": rhs["columnEnd"]
-            }
+            lhs = OperatorExpression("MemberExpression", None, lhs, rhs, lhs["line"], lhs["column"], rhs["lineEnd"], rhs["columnEnd"])
         else:
-            lhs = {
-                "type": "BinaryExpression",
-                "operator": nt["value"],
-                "lhs": lhs,
-                "rhs": rhs,
-                "line": lhs["line"],
-                "column": lhs["column"],
-                "lineEnd": rhs["lineEnd"],
-                "columnEnd": rhs["columnEnd"]
-            }
-    else:
-        print(f"parse_expression: no infix operator: {nt}")
+            lhs = OperatorExpression("BinaryExpression", nt["value"], lhs, rhs, lhs["line"], lhs["column"], rhs["lineEnd"], rhs["columnEnd"])
+    # else:
+        # print(f"parse_expression: no infix operator: {nt}")
     return lhs
 
-def parse_function_call(startToken) -> dict:
+def parse_function_call(startToken):
     args = []
     expectNext("Separator", "(")
     while True:
-        print(f"parse_function_call loop: {startToken['value']}")
+        # print(f"parse_function_call loop: {startToken['value']}")
         if checkNext("Separator", ")"):
-            print(f"parse_function_call: end of args")
+            # print(f"parse_function_call: end of args")
             break
         args.append(parse_expression())
-        print(f"parse_function_call peek: {startToken['value']}", peekToken())
+        # print(f"parse_function_call peek: {startToken['value']}", peekToken())
         if checkNext("Separator", ","):
             getToken() # Consume the comma
     close = getToken()
-    return {
-        "type": "FunctionCall",
-        "name": startToken["value"],
-        "args": args,
-        "line": startToken["line"],
-        "column": startToken["column"],
-        "lineEnd": close["lineEnd"],
-        "columnEnd": close["columnEnd"]
-    }
+    return FunctionCallExpression(startToken["value"], args, startToken["line"], startToken["column"], close["lineEnd"], close["columnEnd"])
 
 def parse_block():
     statements = []
@@ -196,29 +149,11 @@ def parse_statement():
             end = elseBody
         elif len(elseIfs) > 0:
             end = elseIfs[-1]
-        return {
-            "type": "IfStatement",
-            "condition": condition,
-            "body": body,
-            "elseIfs": elseIfs,
-            "else": elseBody,
-            "line": t["line"],
-            "column": t["column"],
-            "lineEnd": end["lineEnd"],
-            "columnEnd": end["columnEnd"]
-        }
+        return IfStatement(condition, body, elseIfs, elseBody, t["line"], t["column"], end["lineEnd"], end["columnEnd"])
     elif t["type"] == "Keyword" and t["value"] == "while":
         condition = parse_expression()
         body = parse_body()
-        return {
-            "type": "WhileStatement",
-            "condition": condition,
-            "body": body,
-            "line": t["line"],
-            "column": t["column"],
-            "lineEnd": body["lineEnd"],
-            "columnEnd": body["columnEnd"]
-        }
+        return WhileStatement(condition, body, t["line"], t["column"], body["lineEnd"], body["columnEnd"])
     elif t["type"] == "Identifier":
         nt = peekToken()
         if nt["type"] == "Separator" and nt["value"] == "(":
@@ -226,15 +161,7 @@ def parse_statement():
         elif nt["type"] == "Separator" and nt["value"] == "=":
             getToken() # Consume the =
             rhs = parse_expression()
-            return {
-                "type": "AssignmentStatement",
-                "name": t["value"],
-                "value": rhs,
-                "line": t["line"],
-                "column": t["column"],
-                "lineEnd": rhs["lineEnd"],
-                "columnEnd": rhs["columnEnd"]
-            }
+            return AssignmentStatement(t["value"], rhs, t["line"], t["column"], rhs["lineEnd"], rhs["columnEnd"])
     # Else always throws an error
     errorExpected("statement", t)
 
@@ -247,16 +174,7 @@ def parse_import():
             getToken()
     getToken() # Consume the from keyword
     module = expectNext("Identifier")
-    return {
-        "type": "ImportStatement",
-        "subjects": subjects,
-        "module": module,
-        "line": start["line"],
-        "column": start["column"],
-        "lineEnd": module["lineEnd"],
-        "columnEnd": module["columnEnd"]
-    }
-
+    return ImportStatement(module, subjects, start["line"], start["column"], module["lineEnd"], module["columnEnd"])
 
 def parse(_tokens: list) -> dict:
     global currentIndex, tokens
@@ -268,10 +186,4 @@ def parse(_tokens: list) -> dict:
         if checkNext("Keyword", "import"):
             imports.append(parse_import())
         body.append(parse_statement())
-
-    return {
-        'type': 'Program',
-        'imports': imports,
-        'body': body,
-        'lines': tokens[-1]['lineEnd']
-    }
+    return Program(imports, body, tokens[-1]["lineEnd"])
