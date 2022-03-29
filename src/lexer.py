@@ -1,4 +1,3 @@
-from glob import glob
 from io import TextIOWrapper
 
 # === Global variables ===
