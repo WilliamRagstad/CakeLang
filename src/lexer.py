@@ -149,9 +149,10 @@ def tokenize(filepath: str) -> list:
                 t = read_string(f)
                 tokens.append(t)
                 continue
-            elif c in ['+', '-', '*', '/', '%', '=', '!', '<', '>', ':', '&', '|', '^']:
+            elif c == '=':
                 tokens.append({
                     'type': 'Operator',
+                    'subtype': 'Assignment',
                     'value': c,
                     'line': line,
                     'column': column,
@@ -159,6 +160,32 @@ def tokenize(filepath: str) -> list:
                     'columnEnd': column + 1
                 })
                 continue
+            elif c in ['+', '-', '*', '/', '%', '!', '<', '>', ':', '&', '|', '^']:
+                nc = next(f)
+                if nc == '=':
+                    tokens.append({
+                        'type': 'Operator',
+                        'subtype': 'MutatingAssignment',
+                        'value': c + nc,
+                        'line': line,
+                        'column': column,
+                        'lineEnd': line,
+                        'columnEnd': column + 2
+                    })
+                    continue
+                else:
+                    tokens.append({
+                        'type': 'Operator',
+                        'subtype': 'InfixOperator',
+                        'value': c,
+                        'line': line,
+                        'column': column,
+                        'lineEnd': line,
+                        'columnEnd': column + 1
+                    })
+                    c = nc
+                    readNext = False
+                    continue
             elif c in ['(', ')', '{', '}', '[', ']', ',']:
                 tokens.append({
                     'type': 'Separator',
