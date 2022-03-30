@@ -1,6 +1,7 @@
 
 from termcolor import colored as c
-from .util import path_filename, path_normalize, path_validate
+
+from .util import path_filename, path_normalize, path_validate, print_error
 from .lexer import tokenize
 from .parser import parse
 from .checker import check
