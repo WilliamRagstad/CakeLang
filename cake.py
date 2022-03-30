@@ -5,7 +5,7 @@ from src.linter import lint
 
 # === Global variables ===
 
-VERSION = '0.0.1'
+VERSION = '1.0.0-Alpha'
 USAGE = f"""{c(f"Welcome to the Cake 🎂 compiler version {VERSION}!", "yellow")}
 {c("Usage:", "cyan")} cake (options) [file.c|.cake]
 
