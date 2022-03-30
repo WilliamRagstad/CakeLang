@@ -1,6 +1,7 @@
 from os import write
 from termcolor import colored as c
 
+from .types.datapack import DataPack
 from .types.token import Token
 from .types.program import Program
 from .util import indent, path_filename, path_normalize, path_validate, print_error
@@ -26,9 +27,19 @@ def printProgram(program: Program):
 		print(b.toString(1))
 	if len(program.body) == 0: print(indent(1, "None"))
 
-def printCommands(commands):
-	print(c("=== Commands ===", "cyan"))
-	print(commands)
+def printCommands(commands: DataPack):
+	print(c("=== Data pack ===", "cyan"))
+	print("Functions:")
+	for f in commands.functions:
+		print(indent(1, "Name:"), f.name)
+		print(indent(1, "Arguments:"))
+		for a in f.args:
+			print(indent(2, a))
+		print("Commands:")
+		for b in f.body:
+			print(indent(2, b))
+		print()
+	if len(commands.functions) == 0: print(indent(1, "None"))
 
 def printTypeCheck():
 	print(c("=== Type Check ===", "cyan"))
