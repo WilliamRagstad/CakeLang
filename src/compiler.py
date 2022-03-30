@@ -3,7 +3,7 @@ from termcolor import colored as c
 
 from .types.token import Token
 from .types.program import Program
-from .util import path_filename, path_normalize, path_validate, print_error
+from .util import indent, path_filename, path_normalize, path_validate, print_error
 from .lexer import tokenize
 from .parser import parse
 from .checker import check
@@ -19,12 +19,12 @@ def printProgram(program: Program):
 	print("Lines:", program.lines)
 	print("Imports:")
 	for i in program.imports:
-		print("    ", i)
-	if len(program.imports) == 0: print("  None")
+		print(i.toString(1))
+	if len(program.imports) == 0: print(indent(1, "None"))
 	print("AST:")
 	for b in program.body:
-		print("    ", b.__class__.__name__)
-	if len(program.body) == 0: print("  None")
+		print(b.toString(1))
+	if len(program.body) == 0: print(indent(1, "None"))
 
 def printCommands(commands):
 	print(c("=== Commands ===", "cyan"))
