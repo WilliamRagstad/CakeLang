@@ -1,6 +1,7 @@
 import sys
 from termcolor import colored as c
 from src.compiler import compile
+from src.linter import lint
 
 # === Global variables ===
 
@@ -15,6 +16,11 @@ USAGE = f"""{c(f"Welcome to the Cake compiler version {VERSION}! 🎂", "yellow"
 
 Developed by {c("@WilliamRagstad", "blue", attrs=["underline"])}.\n"""
 
+# === Helper functions ===
+def print_error(msg: str):
+    print(c(f"{msg}, try -h or --help to show usage.", "red"))
+    sys.exit(1)
+
 # === Main ===
 
 def main(args: list):
@@ -23,16 +29,19 @@ def main(args: list):
     elif '-v' in args or '--version' in args:
         print(c(f"Cake {VERSION}", "yellow"))
     elif '-l' in args or '--lint' in args:
-        print("Linting...")
+        if len(args) == 1:
+            print_error("Missing file to lint")
+        elif len(args) > 2:
+            print_error("Too many files specified")
+        else:
+            lint(args[2])
     # Compile
     elif len(args) > 1:
-        print("Too many arguments, try -h or --help to show usage.")
-        sys.exit(1)
+        print_error("Too many arguments")
     elif len(args) == 1:
         compile(args[0])
     else:
-        print("Unknown option, try -h or --help to show usage.")
-        sys.exit(1)
+        print_error("Unknown option")
 
 if __name__ == '__main__':
     # Call main with args
