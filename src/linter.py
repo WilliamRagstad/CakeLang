@@ -1,24 +1,17 @@
-from os import write
+
 from termcolor import colored as c
-from .util import path_filename, path_normalize, path_validate, print_error
+from .util import path_filename, path_normalize, path_validate
 from .lexer import tokenize
 from .parser import parse
 from .checker import check
-from .generator import generate
 
 
-# === Helper functions ===
-
-def printTokens(tokens: list):
-    print("=== Tokens ===")
-    for t in tokens:
-        print(t['type'], "\t", t['value'])
-
-def compile(filepath: str):
+def lint(filepath: str):
     filepath = path_normalize(filepath)
     filename = path_filename(filepath)
     path_validate(filepath)
-    print(c(f"Compiling ", "cyan") + c(f"'{filename}'", "yellow") + c(f"...", "cyan"))
+    print(c(f"Linting ", "cyan") +
+    c(f"'{filename}'", "yellow") + c(f"...", "cyan"))
     errorType = "Unknown"
     try:
         errorType = "Syntax"
