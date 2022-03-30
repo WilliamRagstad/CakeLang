@@ -1,6 +1,8 @@
 from os import write
 from termcolor import colored as c
 
+from .lib.commands import populate
+from .types.environment import Environment
 from .types.datapack import DataPack
 from .types.token import Token
 from .types.program import Program
@@ -64,8 +66,10 @@ def compile(filepath: str, debug: bool = False):
 		check(program, debug)
 		if debug:
 			printTypeCheck()
+		env = Environment.globalEnv()
+		populate(env)
 		errorType = "Generate"
-		output = generate(program, debug)
+		output = generate(program, env, debug)
 		if debug:
 			printCommands(output)
 		# TOTO: Output to file

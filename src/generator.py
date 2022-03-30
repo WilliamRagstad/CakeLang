@@ -1,6 +1,7 @@
+from .types.function import FunctionCallExpression
 from .types.datapack import DataPack, DataPackFunction
 from .types.program import Program
-from .types.environment import Environment
+from .types.environment import EnvFunction, Environment
 from .types.expression import Expression
 
 # === Global variables ===
@@ -8,21 +9,33 @@ from .types.expression import Expression
 debug = False
 
 # === Helper functions ===
-def generateExpression(exp: Expression):
+
+def error(message: str, exp: Expression):
+    raise Exception(f"{message} at line {exp.line}:{exp.column} to {exp.lineEnd}:{exp.columnEnd}.")
+
+def generateFunctionCall(f: FunctionCallExpression, env: Environment) -> str:
+	value = env.lookup(f.name)
+	if value == None:
+		error(f"Function {f.name} not found.", f)
+	elif value.type == "Function" and isinstance(value, EnvFunction):
+		return value.generator(f)
+	else:
+		error(f"{f.name} is not a function.", f)
+
+def generateExpression(exp: Expression, env: Environment) -> str:
 	match exp.type:
-		case "Expression":
-			return ""
+		case "FunctionCallExpression":
+			return generateFunctionCall(exp, env)
 
 def generateProgram(program: Program, env: Environment) -> DataPack:
 	pack = DataPack()
 	main = DataPackFunction("main", [])
 	# program body is the main function
 	for exp in program.body:
-		main.commands.append(generateExpression(exp))
+		main.commands.append(generateExpression(exp, env))
 	return pack
 
-
-def generate(ast, _debug: bool = False) -> DataPack:
+def generate(ast, env: Environment, _debug: bool = False) -> DataPack:
 	global debug
 	debug = _debug
-	return generateProgram(ast, Environment.globalEnv())
+	return generateProgram(ast, env)
