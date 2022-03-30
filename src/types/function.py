@@ -1,4 +1,4 @@
-from types.expression import Expression
+from .expression import Expression
 
 
 class FunctionCallExpression(Expression):

@@ -1,10 +1,10 @@
 # === Global variables ===
 
-from types.expression import Expression
-from types.function import FunctionCallExpression
-from types.statements import AssignmentStatement, IfStatement, ImportStatement, WhileStatement
-from types.operator import OperatorExpression
-from types.program import Program
+from .types.expression import Expression
+from .types.function import FunctionCallExpression
+from .types.statements import AssignmentStatement, IfStatement, ImportStatement, WhileStatement
+from .types.operator import OperatorExpression
+from .types.program import Program
 
 
 tokens = None
@@ -76,7 +76,7 @@ def parse_expression():
         lhs =  Expression("NumberExpression", t["value"], t["line"], t["column"], t["lineEnd"], t["columnEnd"])
     else:
         errorExpected("expression", t)
-    
+
     # Check for infix operators
     nt = peekToken()
     if nt["type"] == "Operator":
