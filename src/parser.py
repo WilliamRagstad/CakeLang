@@ -1,3 +1,4 @@
+from .types.token import Token
 from .types.expression import Expression
 from .types.function import FunctionCallExpression
 from .types.statements import AssignmentStatement, IfStatement, ImportStatement, WhileStatement
@@ -12,45 +13,52 @@ debug = False
 
 # === Helper functions ===
 
-def error(message: str, token: dict):
+def error(message: str, token: Token):
     raise Exception(f"{message} at line {token['line']}:{token['column']} to {token['lineEnd']}:{token['columnEnd']}.")
 
-def errorExpected(what, token: dict):
+def errorExpected(what, token: Token):
+    if token == None:
+        raise Exception(f"Expected {what} at end of input.")
     error(f"Expected {what}, but got '{token['value']}' of type {token['type']}", token)
 
-def peekToken(offset=0, _acc=0) -> dict:
+def peekToken(offset=0, _acc=0) -> Token:
     global currentIndex, tokens
     if currentIndex + _acc + offset >= len(tokens):
         return None
     t = tokens[currentIndex + _acc + offset]
-    if t["type"] == "Comment":
+    if t.type == "Comment":
         return peekToken(offset, _acc + 1)
     return t
 
-def getToken() -> dict:
+def getToken() -> Token:
     global currentIndex, tokens
     if currentIndex >= len(tokens):
         return None
     t = tokens[currentIndex]
-    while t["type"] == "Comment":
+    while t.type == "Comment":
         currentIndex += 1
-        t = tokens[currentIndex]
+        t = getToken()
+        if t == None:
+            return t
     currentIndex += 1
     return t
 
-def expectNext(type, value = None) -> dict:
+def isEndOfInput():
+    return peekToken() == None
+
+def expectNext(type, value = None) -> Token:
     t = getToken()
-    if t["type"] != type:
+    if t == None or t.type != type:
         errorExpected(type, t)
-    if value != None and t["value"] != value:
+    if value != None and t.value != value:
         errorExpected(value, t)
     return t
 
 def checkNext(type, value = None) -> bool:
     t = peekToken()
-    if t["type"] != type:
+    if t == None or t.type != type:
         return False
-    if value != None and t["value"] != value:
+    if value != None and t.value != value:
         return False
     return True
 
@@ -60,40 +68,40 @@ def parse_expression():
     t = getToken()
     # print(t)
     lhs = None
-    if t["type"] == "Separator" and t["value"] == "(":
+    if t.type == "Separator" and t.value == "(":
         expr: Expression = parse_expression()
         expectNext("Separator", ")")
         lhs = expr
-    elif t["type"] == "Identifier":
+    elif t.type == "Identifier":
         nt = peekToken()
-        if nt["type"] == "Separator" and nt["value"] == "(":
+        if nt.type == "Separator" and nt.value == "(":
             lhs = parse_function_call(t)
         else:
-            lhs = Expression("IdentifierExpression", t["value"], t["line"], t["column"], t["lineEnd"], t["columnEnd"])
-    elif t["type"] == "String":
-        lhs =  Expression("StringExpression", t["value"], t["line"], t["column"], t["lineEnd"], t["columnEnd"])
-    elif t["type"] == "Number":
-        lhs =  Expression("NumberExpression", t["value"], t["line"], t["column"], t["lineEnd"], t["columnEnd"])
+            lhs = Expression("IdentifierExpression", t.value, t.line, t.column, t.lineEnd, t.columnEnd)
+    elif t.type == "String":
+        lhs =  Expression("StringExpression", t.value, t.line, t.column, t.lineEnd, t.columnEnd)
+    elif t.type == "Number":
+        lhs =  Expression("NumberExpression", t.value, t.line, t.column, t.lineEnd, t.columnEnd)
     else:
         errorExpected("expression", t)
 
     # Check for infix operators
     nt = peekToken()
-    if nt["type"] == "Operator":
+    if nt.type == "Operator":
         getToken() # Consume the operator
         rhs = parse_expression()
         # print(lhs, nt, rhs)
-        if nt["value"] == "=":
-            lhs = OperatorExpression("AssignmentExpression", None, lhs, rhs, lhs["line"], lhs["column"], rhs["lineEnd"], rhs["columnEnd"])
-        elif nt["value"] == ":":
-            lhs = OperatorExpression("MemberExpression", None, lhs, rhs, lhs["line"], lhs["column"], rhs["lineEnd"], rhs["columnEnd"])
+        if nt.value == "=":
+            lhs = OperatorExpression("AssignmentExpression", None, lhs, rhs, lhs.line, lhs.column, rhs.lineEnd, rhs.columnEnd)
+        elif nt.value == ":":
+            lhs = OperatorExpression("MemberExpression", None, lhs, rhs, lhs.line, lhs.column, rhs.lineEnd, rhs.columnEnd)
         else:
-            lhs = OperatorExpression("BinaryExpression", nt["value"], lhs, rhs, lhs["line"], lhs["column"], rhs["lineEnd"], rhs["columnEnd"])
+            lhs = OperatorExpression("BinaryExpression", nt.value, lhs, rhs, lhs.line, lhs.column, rhs.lineEnd, rhs.columnEnd)
     # else:
         # print(f"parse_expression: no infix operator: {nt}")
     return lhs
 
-def parse_function_call(startToken):
+def parse_function_call(startToken: Token):
     args = []
     expectNext("Separator", "(")
     while True:
@@ -106,7 +114,7 @@ def parse_function_call(startToken):
         if checkNext("Separator", ","):
             getToken() # Consume the comma
     close = getToken()
-    return FunctionCallExpression(startToken["value"], args, startToken["line"], startToken["column"], close["lineEnd"], close["columnEnd"])
+    return FunctionCallExpression(startToken.value, args, startToken.line, startToken.column, close.lineEnd, close.columnEnd)
 
 def parse_block():
     statements = []
@@ -117,10 +125,10 @@ def parse_block():
     return {
         "type": "BlockStatement",
         "statements": statements,
-        "line": start["line"],
-        "column": start["column"],
-        "lineEnd": end["lineEnd"],
-        "columnEnd": end["columnEnd"]
+        "line": start.line,
+        "column": start.column,
+        "lineEnd": end.lineEnd,
+        "columnEnd": end.columnEnd
     }
 
 def parse_body():
@@ -131,7 +139,7 @@ def parse_body():
 
 def parse_statement():
     t = getToken()
-    if t["type"] == "Keyword" and t["value"] == "if":
+    if t and t.type == "Keyword" and t.value == "if":
         condition = parse_expression()
         body = parse_body()
         elseIfs = []
@@ -149,19 +157,19 @@ def parse_statement():
             end = elseBody
         elif len(elseIfs) > 0:
             end = elseIfs[-1]
-        return IfStatement(condition, body, elseIfs, elseBody, t["line"], t["column"], end["lineEnd"], end["columnEnd"])
-    elif t["type"] == "Keyword" and t["value"] == "while":
+        return IfStatement(condition, body, elseIfs, elseBody, t.line, t.column, end.lineEnd, end.columnEnd)
+    elif t and t.type == "Keyword" and t.value == "while":
         condition = parse_expression()
         body = parse_body()
-        return WhileStatement(condition, body, t["line"], t["column"], body["lineEnd"], body["columnEnd"])
-    elif t["type"] == "Identifier":
+        return WhileStatement(condition, body, t.line, t.column, body.lineEnd, body.columnEnd)
+    elif t and t.type == "Identifier":
         nt = peekToken()
-        if nt["type"] == "Separator" and nt["value"] == "(":
+        if nt.type == "Separator" and nt.value == "(":
             return parse_function_call(t)
-        elif nt["type"] == "Separator" and nt["value"] == "=":
+        elif nt.type == "Separator" and nt.value == "=":
             getToken() # Consume the =
             rhs = parse_expression()
-            return AssignmentStatement(t["value"], rhs, t["line"], t["column"], rhs["lineEnd"], rhs["columnEnd"])
+            return AssignmentStatement(t.value, rhs, t.line, t.column, rhs.lineEnd, rhs.columnEnd)
     # Else always throws an error
     errorExpected("statement", t)
 
@@ -174,17 +182,17 @@ def parse_import():
             getToken()
     getToken() # Consume the from keyword
     module = expectNext("Identifier")
-    return ImportStatement(module, subjects, start["line"], start["column"], module["lineEnd"], module["columnEnd"])
+    return ImportStatement(module, subjects, start.line, start.column, module.lineEnd, module.columnEnd)
 
-def parse(_tokens: list, _debug: bool = False) -> dict:
+def parse(_tokens: list[Token], _debug: bool = False) -> Program:
     global currentIndex, tokens, debug
     tokens = _tokens
     currentIndex = 0
     debug = _debug
     imports = []
     body = []
-    while currentIndex < len(tokens):
+    while not isEndOfInput():
         if checkNext("Keyword", "import"):
             imports.append(parse_import())
         body.append(parse_statement())
-    return Program(imports, body, tokens[-1]["lineEnd"])
+    return Program(imports, body, tokens[-1].lineEnd)
