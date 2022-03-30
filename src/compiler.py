@@ -38,7 +38,7 @@ def printCommands(commands: DataPack):
 		for a in f.args:
 			print(indent(2, a))
 		print("Commands:")
-		for b in f.body:
+		for b in f.commands:
 			print(indent(2, b))
 		print()
 	if len(commands.functions) == 0: print(indent(1, "None"))
