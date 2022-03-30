@@ -33,6 +33,7 @@ def generateProgram(program: Program, env: Environment) -> DataPack:
 	# program body is the main function
 	for exp in program.body:
 		main.commands.append(generateExpression(exp, env))
+	pack.functions.append(main)
 	return pack
 
 def generate(ast, env: Environment, _debug: bool = False) -> DataPack:
