@@ -10,7 +10,7 @@ class FunctionCallExpression(Expression):
 
 	def toString(self, indentation):
 		i = indent(indentation)
-		s = f"{i}{self.__class__.__name__}('{self.name}', \n"
+		s = f"{i}{self.type}('{self.name}', \n"
 		for arg in self.args:
 			s += f"{arg.toString(indentation + 1)},\n"
 		s += i + ")"
