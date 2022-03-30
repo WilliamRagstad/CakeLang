@@ -22,5 +22,13 @@ def print_error(e: CakeError, file: str, halt: bool = True):
 	if halt:
 		sys.exit(1)
 
+def print_bug(e: Exception):
+	print(c("\n=== Internal Error ===", "red"))
+	print(c("This is an internal error and is most likely a bug.", "red"))
+	print(c("Please report this to the developer by opening an issue on GitHub at:", "red"))
+	print(c("https://github.com/WilliamRagstad/CakeLang/issues/new", "blue"))
+	print(c("\n=== Exception Traceback ===", "red"))
+	raise e
+
 def indent(indent: int, suffix: str = '') -> str:
 	return ("   " * indent) + suffix

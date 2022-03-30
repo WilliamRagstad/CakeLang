@@ -8,7 +8,7 @@ from .types.environment import Environment
 from .types.datapack import DataPack
 from .types.token import Token
 from .types.program import Program
-from .util import indent, path_filename, path_normalize, path_validate, print_error
+from .util import indent, path_filename, path_normalize, path_validate, print_bug, print_error
 from .lexer import tokenize
 from .parser import parse
 from .checker import check
@@ -75,9 +75,4 @@ def compile(filepath: str, debug: bool = False):
 		if debug:
 			raise e
 	except Exception as e:
-		print(c("\n=== Internal Error ===", "red"))
-		print(c("This is an internal error and is most likely a bug.", "red"))
-		print(c("Please report this to the developer by opening an issue on GitHub at:", "red"))
-		print(c("https://github.com/WilliamRagstad/CakeLang/issues/new", "blue"))
-		print(c("\n=== Exception Traceback ===", "red"))
-		raise e
+		print_bug(e)
