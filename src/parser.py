@@ -14,12 +14,12 @@ debug = False
 # === Helper functions ===
 
 def error(message: str, token: Token):
-    raise Exception(f"{message} at line {token['line']}:{token['column']} to {token['lineEnd']}:{token['columnEnd']}.")
+    raise Exception(f"{message} at line {token.line}:{token.column} to {token.lineEnd}:{token.columnEnd}.")
 
 def errorExpected(what, token: Token):
     if token == None:
         raise Exception(f"Expected {what} at end of input.")
-    error(f"Expected {what}, but got '{token['value']}' of type {token['type']}", token)
+    error(f"Expected {what}, but got '{token.value}' of type {token.type}", token)
 
 def peekToken(offset=0, _acc=0) -> Token:
     global currentIndex, tokens
