@@ -1,4 +1,5 @@
-
+from .types.datapack import DataPack, DataPackFunction
+from .types.program import Program
 from .types.environment import Environment
 from .types.expression import Expression
 
@@ -7,14 +8,21 @@ from .types.expression import Expression
 debug = False
 
 # === Helper functions ===
-def generateExperssion(exp: Expression):
+def generateExpression(exp: Expression):
 	match exp.type:
 		case "Expression":
 			return ""
 
-def generate(ast, _debug: bool = False):
+def generateProgram(program: Program, env: Environment) -> DataPack:
+	pack = DataPack()
+	main = DataPackFunction("main", [])
+	# program body is the main function
+	for exp in program.body:
+		main.commands.append(generateExpression(exp))
+	return pack
+
+
+def generate(ast, _debug: bool = False) -> DataPack:
 	global debug
 	debug = _debug
-	env = Environment.globalEnv()
-	functions = []
-	# program body is the main function
+	return generateProgram(ast, Environment.globalEnv())
