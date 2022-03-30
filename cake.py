@@ -6,7 +6,7 @@ from src.compiler import compile
 
 VERSION = '0.0.1'
 USAGE = f"""{c(f"Welcome to the Cake compiler version {VERSION}! 🎂", "yellow")}
-{c("Usage:", "cyan")} cake (options) [file]
+{c("Usage:", "cyan")} cake (options) [file.c|.cake]
 
 {c("Options:", "cyan")}
     -h, --help      Print this help message and exit.

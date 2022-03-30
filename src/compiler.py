@@ -1,8 +1,9 @@
 from os import write
+import sys
 from .checker import check
 from .generator import generate
 from .lexer import tokenize
-from .parser import error, parse
+from .parser import parse
 
 
 # === Helper functions ===
@@ -16,7 +17,7 @@ def compile(filepath: str):
     filepath = filepath.replace('\\', '/')
     filename = filepath[filepath.index('/') + 1:]
     if not (filepath.endswith('.cake') or filepath.endswith('.c')):
-        print(f"The specified file '{filename}' was not a valid cake file. Must end with .cake or .c")
+        print(f"The specified file '{filename}' is not a valid cake file. Must end with .cake or .c")
         sys.exit(1)
     print(f"Compiling '{filename}'...")
     errorType = "Unknown"
