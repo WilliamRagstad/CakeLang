@@ -1,3 +1,4 @@
+from .types.error import CakeSemanticError
 from .types.token import Token
 from .types.expression import Expression
 from .types.function import FunctionCallExpression
@@ -7,6 +8,7 @@ from .types.program import Program
 
 # === Global variables ===
 
+filepath = None
 tokens = None
 currentIndex = 0
 debug = False
@@ -14,11 +16,11 @@ debug = False
 # === Helper functions ===
 
 def error(message: str, token: Token):
-    raise Exception(f"{message} at line {token.line}:{token.column} to {token.lineEnd}:{token.columnEnd}.")
+    raise CakeSemanticError(f"{message} at line {token.line}:{token.column} to {token.lineEnd}:{token.columnEnd}.", filepath)
 
 def errorExpected(what, token: Token):
     if token == None:
-        raise Exception(f"Expected {what} at end of input.")
+        raise CakeSemanticError(f"Expected {what} at end of input.", filepath)
     error(f"Expected {what}, but got '{token.value}' of type {token.type}", token)
 
 def peekToken(offset=0, _acc=0) -> Token:
@@ -184,8 +186,9 @@ def parse_import():
     module = expectNext("Identifier")
     return ImportStatement(module, subjects, start.line, start.column, module.lineEnd, module.columnEnd)
 
-def parse(_tokens: list[Token], _debug: bool = False) -> Program:
-    global currentIndex, tokens, debug
+def parse(_tokens: list[Token], _filepath: str, _debug: bool = False) -> Program:
+    global currentIndex, tokens, debug, filepath
+    filepath = _filepath
     tokens = _tokens
     currentIndex = 0
     debug = _debug

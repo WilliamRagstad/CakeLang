@@ -1,8 +1,11 @@
 from io import TextIOWrapper
+
+from .types.error import CakeSyntaxError
 from .types.token import OperatorToken, Token
 
 # === Global variables ===
 
+filepath = None
 line: int = 1
 column: int = 0
 tokens = []
@@ -51,14 +54,14 @@ def read_identifier(first: str, f: TextIOWrapper):
 	else: return Token('Identifier', identifier, startLine, startColumn, line, column, c)
 
 def read_string(f: TextIOWrapper):
-	global line, column
+	global line, column, filepath
 	startLine = line
 	startColumn = column
 	string = ''
 	c = next(f)
 	while c != '"':
 		if c == '\n':
-			raise Exception(f"Unexpected newline in string at line {line} column {column}")
+			raise CakeSyntaxError(f"Unexpected newline in string at line {line} column {column}", filepath)
 		string += c
 		c = next(f)
 	return Token('String', string, startLine, startColumn, line, column, c)
@@ -74,12 +77,13 @@ def read_comment(f: TextIOWrapper):
 		c = next(f)
 	return Token('Comment', comment, startLine, startColumn, line, column, c)
 
-def tokenize(filepath: str, _debug: bool = False) -> list[Token]:
-	global line, column, tokens, debug
+def tokenize(_filepath: str, _debug: bool = False) -> list[Token]:
+	global line, column, tokens, debug, filename
 	tokens = []
 	line = 1
 	column = 0
 	debug = _debug
+	filepath = _filepath
 	with open(filepath, 'r', encoding='utf8') as f:
 		readNext = True
 		c = None
@@ -129,5 +133,5 @@ def tokenize(filepath: str, _debug: bool = False) -> list[Token]:
 				tokens.append(t)
 				continue
 			else:
-				raise Exception(f"Unexpected character '{c}' at line {line} column {column}-{column + 1}")
+				raise CakeSyntaxError(f"Unexpected character '{c}' at line {line} column {column}-{column + 1}", filepath)
 	return tokens

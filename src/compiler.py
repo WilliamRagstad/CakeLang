@@ -1,7 +1,9 @@
 from os import write
 from termcolor import colored as c
 
+
 from .lib.commands import populate
+from .types.error import CakeError
 from .types.environment import Environment
 from .types.datapack import DataPack
 from .types.token import Token
@@ -52,28 +54,30 @@ def compile(filepath: str, debug: bool = False):
 	filename = path_filename(filepath)
 	path_validate(filepath)
 	print(c(f"Compiling ", "cyan") + c(f"'{filename}'", "yellow") + c(f"...", "cyan"))
-	errorType = "Unknown"
 	try:
-		errorType = "Syntax"
 		tokens = tokenize(filepath, debug)
 		if debug:
 			printTokens(tokens)
-		errorType = "Semantic"
-		program = parse(tokens, debug)
+		program = parse(tokens, filepath, debug)
 		if debug:
 			printProgram(program)
-		errorType = "Type"
-		check(program, debug)
+		check(program, filepath, debug)
 		if debug:
 			printTypeCheck()
 		env = Environment.globalEnv()
 		populate(env)
-		errorType = "Generate"
-		output = generate(program, env, debug)
+		output = generate(program, env, filepath, debug)
 		if debug:
 			printCommands(output)
 		# TOTO: Output to file
-	except Exception as e:
-		print_error(errorType, filename, e, not debug)
+	except CakeError as e:
+		print_error(e, filename, not debug)
 		if debug:
 			raise e
+	except Exception as e:
+		print(c("\n=== Internal Error ===", "red"))
+		print(c("This is an internal error and is most likely a bug.", "red"))
+		print(c("Please report this to the developer by opening an issue on GitHub at:", "red"))
+		print(c("https://github.com/WilliamRagstad/CakeLang/issues/new", "blue"))
+		print(c("\n=== Exception Traceback ===", "red"))
+		raise e

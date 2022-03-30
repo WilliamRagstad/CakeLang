@@ -1,3 +1,4 @@
+from .types.error import CakeGenerateError
 from .types.function import FunctionCallExpression
 from .types.datapack import DataPack, DataPackFunction
 from .types.program import Program
@@ -6,12 +7,13 @@ from .types.expression import Expression
 
 # === Global variables ===
 
+filepath = None
 debug = False
 
 # === Helper functions ===
 
 def error(message: str, exp: Expression):
-    raise Exception(f"{message} at line {exp.line}:{exp.column} to {exp.lineEnd}:{exp.columnEnd}.")
+    raise CakeGenerateError(f"{message} at line {exp.line}:{exp.column} to {exp.lineEnd}:{exp.columnEnd}.", filepath)
 
 def generateFunctionCall(f: FunctionCallExpression, env: Environment) -> str:
 	value = env.lookup(f.name)
@@ -36,7 +38,8 @@ def generateProgram(program: Program, env: Environment) -> DataPack:
 	pack.functions.append(main)
 	return pack
 
-def generate(ast, env: Environment, _debug: bool = False) -> DataPack:
-	global debug
+def generate(ast, env: Environment, _filepath: str, _debug: bool = False) -> DataPack:
+	global debug, filepath
 	debug = _debug
+	filepath = _filepath
 	return generateProgram(ast, env)

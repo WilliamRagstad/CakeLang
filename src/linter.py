@@ -15,21 +15,17 @@ def lint(filepath: str, debug: bool = False):
     path_validate(filepath)
     print(c(f"Linting ", "cyan") +
     c(f"'{filename}'", "yellow") + c(f"...", "cyan"))
-    errorType = "Unknown"
     try:
-        errorType = "Syntax"
         tokens = tokenize(filepath, debug)
         if debug:
             printTokens(tokens)
-        errorType = "Semantic"
         program = parse(tokens, debug)
         if debug:
             printProgram(program)
-        errorType = "Type"
         check(program, debug)
         if debug:
             printTypeCheck()
         # Success
         print(c(f"Successfully linted file, all checks passed!\n", "green"))
     except Exception as e:
-        print_error(errorType, filename, e)
+        print_error(e, filename)
