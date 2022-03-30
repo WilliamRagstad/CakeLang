@@ -45,7 +45,7 @@ def printCommands(commands: DataPack):
 
 def printTypeCheck():
 	print(c("=== Type Check ===", "cyan"))
-	print("Type checking successful!")
+	print("Type checking passed.")
 
 def compile(filepath: str, debug: bool = False):
 	filepath = path_normalize(filepath)
