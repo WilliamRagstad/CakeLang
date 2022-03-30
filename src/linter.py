@@ -1,7 +1,7 @@
 
 from termcolor import colored as c
 
-from .compiler import printAST, printTokens
+from .compiler import printProgram, printTokens, printTypeCheck
 
 from .util import path_filename, path_normalize, path_validate, print_error
 from .lexer import tokenize
@@ -24,11 +24,11 @@ def lint(filepath: str, debug: bool = False):
         errorType = "Semantic"
         program = parse(tokens, debug)
         if debug:
-            printAST(program)
+            printProgram(program)
         errorType = "Type"
         check(program, debug)
         if debug:
-            print("Type checking successful!")
+            printTypeCheck()
         # Success
         print(c(f"Successfully linted file, all checks passed!\n", "green"))
     except Exception as e:
