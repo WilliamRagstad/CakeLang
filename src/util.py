@@ -15,6 +15,7 @@ def path_validate(path: str):
 		sys.exit(1)
 	return
 
-def print_error(type: str, file: str, e: Exception):
+def print_error(type: str, file: str, e: Exception, halt: bool = True):
 	print(c(f"\n{type} Error", "red", attrs=["bold"]) + c(f" in ", "red") + c(f"'{file}'", "yellow") + c(f":\n    {e}", "red"))
-	sys.exit(1)
+	if halt:
+		sys.exit(1)
