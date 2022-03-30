@@ -1,16 +1,19 @@
 import sys
+from termcolor import colored as c
 from src.compiler import compile
 
 # === Global variables ===
 
 VERSION = '0.0.1'
-USAGE = f"""Welcome to Cake lang compiler v{VERSION}! 🎂
-Usage: compiler (options) [file]
+USAGE = f"""{c(f"Welcome to the Cake compiler version {VERSION}! 🎂", "yellow")}
+{c("Usage:", "cyan")} cake (options) [file]
 
-Options:
+{c("Options:", "cyan")}
     -h, --help      Print this help message and exit.
     -v, --version   Print version information and exit.
-    -l, --lint      Lint the source file."""
+    -l, --lint      Lint the source file.
+
+Developed by {c("@WilliamRagstad", "blue", attrs=["underline"])}.\n"""
 
 # === Main ===
 
@@ -18,7 +21,7 @@ def main(args: list):
     if len(args) == 0 or '-h' in args or '--help' in args:
         print(USAGE)
     elif '-v' in args or '--version' in args:
-        print(f"Cake lang version {VERSION}")
+        print(c(f"Cake {VERSION}", "yellow"))
     elif '-l' in args or '--lint' in args:
         print("Linting...")
     # Compile
