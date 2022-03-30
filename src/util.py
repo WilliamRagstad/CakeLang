@@ -9,7 +9,8 @@ def path_filename(path: str):
 	return path[path.rindex('/') + 1:]
 
 def path_validate(path: str):
-	if not path.endswith('.cake') or path.endswith('.c'):
+	ext = path[path.rindex('.') + 1:]
+	if not (ext == 'cake' or ext == 'c'):
 		print(c(f"The specified file '{path}' is not a valid cake file. Must end with .cake or .c", "red"))
 		sys.exit(1)
 	return
