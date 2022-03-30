@@ -1,14 +1,14 @@
-# === Global variables ===
-
 from .types.expression import Expression
 from .types.function import FunctionCallExpression
 from .types.statements import AssignmentStatement, IfStatement, ImportStatement, WhileStatement
 from .types.operator import OperatorExpression
 from .types.program import Program
 
+# === Global variables ===
 
 tokens = None
 currentIndex = 0
+debug = False
 
 # === Helper functions ===
 
@@ -176,10 +176,11 @@ def parse_import():
     module = expectNext("Identifier")
     return ImportStatement(module, subjects, start["line"], start["column"], module["lineEnd"], module["columnEnd"])
 
-def parse(_tokens: list) -> dict:
-    global currentIndex, tokens
+def parse(_tokens: list, _debug: bool = False) -> dict:
+    global currentIndex, tokens, debug
     tokens = _tokens
     currentIndex = 0
+    debug = _debug
     imports = []
     body = []
     while currentIndex < len(tokens):

@@ -5,6 +5,7 @@ from io import TextIOWrapper
 line = 1
 column = 0
 tokens = []
+debug = False
 
 # === Helper functions ===
 
@@ -115,12 +116,13 @@ def read_comment(f: TextIOWrapper):
         'lineEnd': line,
         'columnEnd': column
     }
-    
-def tokenize(filepath: str) -> list:
-    global line, column, tokens
+
+def tokenize(filepath: str, _debug: bool = False) -> list:
+    global line, column, tokens, debug
     tokens = []
     line = 1
     column = 0
+    debug = _debug
     with open(filepath, 'r') as f:
         readNext = True
         c = None
@@ -139,7 +141,7 @@ def tokenize(filepath: str) -> list:
                 c = t['next']
                 readNext = False
                 continue
-            elif c.isalpha():
+            elif c.isalpha() or c == '@' or c == '_':
                 t = read_identifier(c, f)
                 tokens.append(t)
                 c = t['next']
@@ -202,5 +204,4 @@ def tokenize(filepath: str) -> list:
                 continue
             else:
                 raise Exception(f"Unexpected character '{c}' at line {line} column {column}-{column + 1}")
-    return tokens   
-
+    return tokens

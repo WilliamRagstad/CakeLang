@@ -1,6 +1,12 @@
 # Static analyzer and type checker
 from .types.environment import Environment
 
-def check(ast):
-    env = Environment.globalEnv()
-    pass
+# === Global variables ===
+
+debug = False
+
+def check(ast, _debug: bool = False):
+	global debug
+	debug = _debug
+	env = Environment.globalEnv()
+	pass

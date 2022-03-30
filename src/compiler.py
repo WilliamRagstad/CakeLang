@@ -6,15 +6,20 @@ from .parser import parse
 from .checker import check
 from .generator import generate
 
-
-# === Helper functions ===
-
 def printTokens(tokens: list):
     print("=== Tokens ===")
     for t in tokens:
         print(t['type'], "\t", t['value'])
 
-def compile(filepath: str):
+def printAST(ast):
+    print("=== AST ===")
+    print(ast)
+
+def printCommands(commands):
+    print("=== Commands ===")
+    print(commands)
+
+def compile(filepath: str, debug: bool = False):
     filepath = path_normalize(filepath)
     filename = path_filename(filepath)
     path_validate(filepath)
@@ -22,18 +27,21 @@ def compile(filepath: str):
     errorType = "Unknown"
     try:
         errorType = "Syntax"
-        tokens = tokenize(filepath)
-        # printTokens(tokens)
+        tokens = tokenize(filepath, debug)
+        if debug:
+            printTokens(tokens)
         errorType = "Semantic"
-        program = parse(tokens)
-        # print("=== AST ===")
-        # print(program)
+        program = parse(tokens, debug)
+        if debug:
+            printAST(program)
         errorType = "Type"
-        check(program)
+        check(program, debug)
+        if debug:
+            print("Type checking successful!")
         errorType = "Generate"
-        output = generate(program)
-        print("=== Commands ===")
-        print(output)
+        output = generate(program, debug)
+        if debug:
+            printCommands(output)
         # TOTO: Output to file
     except Exception as e:
         print_error(errorType, filename, e)
