@@ -6,15 +6,29 @@ from src.linter import lint
 # === Global variables ===
 
 VERSION = '0.0.1'
-USAGE = f"""{c(f"Welcome to the Cake compiler version {VERSION}! 🎂", "yellow")}
+USAGE = f"""{c(f"Welcome to the Cake 🎂 compiler version {VERSION}!", "yellow")}
 {c("Usage:", "cyan")} cake (options) [file.c|.cake]
 
 {c("Options:", "cyan")}
     -h, --help      Print this help message and exit.
     -v, --version   Print version information and exit.
     -l, --lint      Lint the source file.
+    --debug         Print debug information.
 
-Developed by {c("@WilliamRagstad", "blue", attrs=["underline"])}.\n"""
+{c("Examples:", "cyan")}
+    cake file.c
+    cake -l file.cake
+    cake -v
+    cake --help
+
+ ____________________________________________________________________
+|                                                                    |
+| {c("Wiki and Documentation", "cyan")}                                             |
+| View the wiki at {c("https://github.com/WilliamRagstad/CakeLang/wiki", "blue")}.  |
+|                                                                    |
+| {c("Author", "cyan")}                                                             |
+| Developed by {c("@WilliamRagstad", "blue", attrs=["underline"])}, a.k.a Dotch.                         |
+|____________________________________________________________________|\n"""
 
 # === Helper functions ===
 def print_error(msg: str):
