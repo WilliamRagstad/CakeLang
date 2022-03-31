@@ -1,13 +1,16 @@
+from ..util import indent
 from .expression import Expression
 
 
 class ImportStatement(Expression):
-	def __init__(self, _module, _subjects, _line, _column, _lineEnd, _columnEnd):
+	def __init__(self, _module: str, _subjects: list[str], _line, _column, _lineEnd, _columnEnd):
 		super().__init__("ImportStatement", None, _line, _column, _lineEnd, _columnEnd)
 		self.module = _module
 		self.subjects = _subjects
-		self.body = None
-		self.env = None
+
+	def toString(self, indentation):
+		i = indent(indentation)
+		return f"{i}ImportStatement('{self.module}',{self.subjects})"
 
 class IfStatement(Expression):
 	def __init__(self, _condition, _body, _elseIfs, _else, _line, _column, _lineEnd, _columnEnd):
