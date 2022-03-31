@@ -9,7 +9,8 @@ class Token():
 		self.next = _next
 
 	def __str__(self):
-		return self.type.ljust(10) + ' | ' + str(self.value)
+		value = f"'{self.value}'" if isinstance(self.value, str) else str(self.value)
+		return self.type.ljust(10) + ' | ' + value
 
 class OperatorToken(Token):
 	def __init__(self, _subtype: str, _value, _line: int, _column: int, _lineEnd: int, _columnEnd: int):
