@@ -14,6 +14,10 @@ debug = False
 
 # === Helper functions ===
 
+def dprint(*args):
+	global debug
+	if debug: print(*args)
+
 def next(file: TextIOWrapper) -> str | None:
 	global line, column
 	c = file.read(1)
@@ -85,7 +89,7 @@ def tokenize(_filepath: str, _debug: bool = False) -> list[Token]:
 	column = 0
 	debug = _debug
 	filepath = _filepath
-	if debug: print('>',colored("Tokenizing...", "cyan"))
+	dprint('>',colored("Tokenizing...", "cyan"))
 	with open(filepath, 'r', encoding='utf8') as f:
 		readNext = True
 		c = None
