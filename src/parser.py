@@ -81,7 +81,6 @@ def parse_expression():
 		lhs = expr
 	elif t.type == "Identifier":
 		nt = peekToken()
-		dprint(t, nt)
 		if nt.type == "Separator" and nt.value == "(":
 			lhs = parse_function_call(t)
 		else:
