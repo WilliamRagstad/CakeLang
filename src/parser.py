@@ -37,17 +37,18 @@ def peekToken(offset=0) -> Token:
 		return peekToken(offset + 1)
 	return t
 
-def getToken() -> Token:
+def getToken(incrIndex = True) -> Token:
 	global currentIndex, tokens
 	if currentIndex >= len(tokens):
 		return None
 	t = tokens[currentIndex]
 	while t.type == "Comment":
 		currentIndex += 1
-		t = getToken()
+		t = getToken(False)
 		if t == None:
 			return t
-	currentIndex += 1
+	if incrIndex:
+		currentIndex += 1
 	return t
 
 def isEndOfInput():
