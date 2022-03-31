@@ -80,7 +80,7 @@ def read_comment(f: TextIOWrapper):
 	while c != '\n' and c != None:
 		comment += c
 		c = next(f)
-	return Token('Comment', comment, startLine, startColumn, line, column, c)
+	return Token('Comment', comment.strip(), startLine, startColumn, line, column, c)
 
 def tokenize(_filepath: str, _debug: bool = False) -> list[Token]:
 	global line, column, tokens, debug, filename
