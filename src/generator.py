@@ -13,7 +13,7 @@ debug = False
 # === Helper functions ===
 
 def error(message: str, exp: Expression):
-    raise CakeGenerateError(f"{message} at line {exp.line}:{exp.column} to {exp.lineEnd}:{exp.columnEnd}.", filepath)
+	raise CakeGenerateError(f"{message} at line {exp.line}:{exp.column} to {exp.lineEnd}:{exp.columnEnd}.", filepath)
 
 def generateFunctionCall(f: FunctionCallExpression, env: Environment) -> str:
 	value = env.lookup(f.name)
