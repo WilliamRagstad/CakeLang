@@ -184,7 +184,7 @@ def parse_import():
 	start = expectNext("Keyword", "import")
 	subjects = []
 	while not checkNext("Keyword", "from"):
-		subjects.append(expectNext("Identifier"))
+		subjects.append(expectNext("Identifier").value)
 		if checkNext("Separator", ","):
 			getToken()
 	getToken() # Consume the from keyword
