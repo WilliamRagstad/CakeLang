@@ -107,18 +107,20 @@ def parse_expression():
 
 def parse_function_call(startToken: Token):
 	args = []
+	expectArg = False
 	expectNext("Separator", "(")
 	while True:
-		dprint(f"parse_function_call loop: {startToken.value}")
 		if checkNext("Separator", ")"):
-			# print(f"parse_function_call: end of args")
+			if expectArg:
+				errorExpected("argument", getToken())
+			print(f"parse_function_call '{startToken.value}': end of arguments")
 			break
-		exp = parse_expression()
-		dprint(exp)
-		args.append(exp)
-		dprint(f"parse_function_call peek: {startToken.value}", peekToken())
+		dprint(f"parse_function_call '{startToken.value}': parsing argument")
+		args.append(parse_expression())
+		expectArg = False
 		if checkNext("Separator", ","):
 			getToken() # Consume the comma
+			expectArg = True
 	close = getToken()
 	return FunctionCallExpression(startToken.value, args, startToken.line, startToken.column, close.lineEnd, close.columnEnd)
 
