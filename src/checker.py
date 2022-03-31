@@ -1,4 +1,5 @@
 # Static analyzer and type checker
+from termcolor import colored as c
 from .types.program import Program
 from .types.environment import Environment
 
@@ -12,4 +13,5 @@ def check(program: Program, _filepath: str, _debug: bool = False):
 	debug = _debug
 	filepath = _filepath
 	env = Environment.globalEnv()
+	if debug: print('>',c("Type checking...", "cyan"))
 	pass

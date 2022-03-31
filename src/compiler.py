@@ -53,7 +53,7 @@ def compile(filepath: str, debug: bool = False):
 	filepath = path_normalize(filepath)
 	filename = path_filename(filepath)
 	path_validate(filepath)
-	print(c(f"Compiling ", "cyan") + c(f"'{filename}'", "yellow") + c(f"...", "cyan"))
+	print('>',c(f"Compiling ", "cyan") + c(f"'{filename}'", "yellow") + c(f"...", "cyan"))
 	try:
 		tokens = tokenize(filepath, debug)
 		if debug:

@@ -1,3 +1,4 @@
+from termcolor import colored as c
 from .types.error import CakeGenerateError
 from .types.function import FunctionCallExpression
 from .types.datapack import DataPack, DataPackFunction
@@ -42,4 +43,5 @@ def generate(ast, env: Environment, _filepath: str, _debug: bool = False) -> Dat
 	global debug, filepath
 	debug = _debug
 	filepath = _filepath
+	if debug: print('>',c("Generating...", "cyan"))
 	return generateProgram(ast, env)

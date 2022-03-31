@@ -1,4 +1,5 @@
 from io import TextIOWrapper
+from termcolor import colored
 
 from .types.error import CakeSyntaxError
 from .types.token import OperatorToken, Token
@@ -84,6 +85,7 @@ def tokenize(_filepath: str, _debug: bool = False) -> list[Token]:
 	column = 0
 	debug = _debug
 	filepath = _filepath
+	if debug: print('>',colored("Tokenizing...", "cyan"))
 	with open(filepath, 'r', encoding='utf8') as f:
 		readNext = True
 		c = None

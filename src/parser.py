@@ -1,3 +1,4 @@
+from termcolor import colored as c
 from .types.error import CakeSemanticError
 from .types.token import Token
 from .types.expression import Expression
@@ -197,6 +198,7 @@ def parse(_tokens: list[Token], _filepath: str, _debug: bool = False) -> Program
 	debug = _debug
 	imports = []
 	body = []
+	if debug: print('>',c("Parsing...", "cyan"))
 	while not isEndOfInput():
 		if checkNext("Keyword", "import"):
 			imports.append(parse_import())
