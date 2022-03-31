@@ -12,7 +12,7 @@ class Expression():
 
 	def toString(self, indentation):
 		i = indent(indentation)
-		value = f"'{self.value}'" if isinstance(self.value, str) else self.value
+		value = f"'{self.value}'" if isinstance(self.value, str) else str(self.value)
 		return f"{i}{self.type}({value})"
 
 	def __str__(self):
