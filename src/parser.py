@@ -98,9 +98,9 @@ def parse_expression():
 		getToken() # Consume the operator
 		rhs = parse_expression()
 		if nt.value == "=":
-			lhs = OperatorExpression("AssignmentExpression", None, lhs, rhs, lhs.line, lhs.column, rhs.lineEnd, rhs.columnEnd)
+			lhs = OperatorExpression("AssignmentExpression", nt.value, lhs, rhs, lhs.line, lhs.column, rhs.lineEnd, rhs.columnEnd)
 		elif nt.value == ":":
-			lhs = OperatorExpression("MemberExpression", None, lhs, rhs, lhs.line, lhs.column, rhs.lineEnd, rhs.columnEnd)
+			lhs = OperatorExpression("MemberExpression", nt.value, lhs, rhs, lhs.line, lhs.column, rhs.lineEnd, rhs.columnEnd)
 		else:
 			lhs = OperatorExpression("BinaryExpression", nt.value, lhs, rhs, lhs.line, lhs.column, rhs.lineEnd, rhs.columnEnd)
 	return lhs
