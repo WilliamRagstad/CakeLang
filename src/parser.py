@@ -189,6 +189,7 @@ def parse_import():
 			getToken()
 	getToken() # Consume the from keyword
 	module = expectNext("Identifier")
+	dprint(f"parse_import: {subjects} from '{module.value}'")
 	return ImportStatement(module, subjects, start.line, start.column, module.lineEnd, module.columnEnd)
 
 def parse(_tokens: list[Token], _filepath: str, _debug: bool = False) -> Program:
