@@ -16,6 +16,9 @@ debug = False
 
 # === Helper functions ===
 
+def dprint(*args):
+	if debug: print(*args)
+
 def error(message: str, token: Token):
 	raise CakeSemanticError(f"{message} at line {token.line}:{token.column} to {token.lineEnd}:{token.columnEnd}.", filepath)
 
@@ -69,7 +72,6 @@ def checkNext(type, value = None) -> bool:
 
 def parse_expression():
 	t = getToken()
-	# print(t)
 	lhs = None
 	if t.type == "Separator" and t.value == "(":
 		expr: Expression = parse_expression()
@@ -77,7 +79,7 @@ def parse_expression():
 		lhs = expr
 	elif t.type == "Identifier":
 		nt = peekToken()
-		if debug: print(t, nt)
+		dprint(t, nt)
 		if nt.type == "Separator" and nt.value == "(":
 			lhs = parse_function_call(t)
 		else:
@@ -94,29 +96,26 @@ def parse_expression():
 	if nt.type == "Operator":
 		getToken() # Consume the operator
 		rhs = parse_expression()
-		# print(lhs, nt, rhs)
 		if nt.value == "=":
 			lhs = OperatorExpression("AssignmentExpression", None, lhs, rhs, lhs.line, lhs.column, rhs.lineEnd, rhs.columnEnd)
 		elif nt.value == ":":
 			lhs = OperatorExpression("MemberExpression", None, lhs, rhs, lhs.line, lhs.column, rhs.lineEnd, rhs.columnEnd)
 		else:
 			lhs = OperatorExpression("BinaryExpression", nt.value, lhs, rhs, lhs.line, lhs.column, rhs.lineEnd, rhs.columnEnd)
-	# else:
-		# print(f"parse_expression: no infix operator: {nt}")
 	return lhs
 
 def parse_function_call(startToken: Token):
 	args = []
 	expectNext("Separator", "(")
 	while True:
-		# print(f"parse_function_call loop: {startToken['value']}")
+		dprint(f"parse_function_call loop: {startToken.value}")
 		if checkNext("Separator", ")"):
 			# print(f"parse_function_call: end of args")
 			break
 		exp = parse_expression()
-		if debug: print(exp)
+		dprint(exp)
 		args.append(exp)
-		# print(f"parse_function_call peek: {startToken['value']}", peekToken())
+		dprint(f"parse_function_call peek: {startToken.value}", peekToken())
 		if checkNext("Separator", ","):
 			getToken() # Consume the comma
 	close = getToken()
@@ -198,7 +197,7 @@ def parse(_tokens: list[Token], _filepath: str, _debug: bool = False) -> Program
 	debug = _debug
 	imports = []
 	body = []
-	if debug: print('>',c("Parsing...", "cyan"))
+	dprint('>',c("Parsing...", "cyan"))
 	while not isEndOfInput():
 		if checkNext("Keyword", "import"):
 			imports.append(parse_import())
