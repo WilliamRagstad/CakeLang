@@ -17,6 +17,7 @@ debug = False
 # === Helper functions ===
 
 def dprint(*args):
+	global debug
 	if debug: print(*args)
 
 def error(message: str, token: Token):
