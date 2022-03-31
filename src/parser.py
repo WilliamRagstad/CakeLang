@@ -28,13 +28,13 @@ def errorExpected(what, token: Token):
 		raise CakeSemanticError(f"Expected {what} at end of input.", filepath)
 	error(f"Expected {what}, but got '{token.value}' of type {token.type}", token)
 
-def peekToken(offset=0, _acc=0) -> Token:
+def peekToken(offset=0) -> Token:
 	global currentIndex, tokens
-	if currentIndex + _acc + offset >= len(tokens):
+	if currentIndex + offset >= len(tokens):
 		return None
-	t = tokens[currentIndex + _acc + offset]
+	t = tokens[currentIndex + offset]
 	if t.type == "Comment":
-		return peekToken(offset, _acc + 1)
+		return peekToken(offset + 1)
 	return t
 
 def getToken() -> Token:
