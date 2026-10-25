@@ -1,0 +1,25 @@
+name: Compiler
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ['3.10', '3.12', '3.14']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: python -m unittest discover -v
+      - run: python -m pip wheel . --no-deps --wheel-dir dist
+      - name: Clean wheel installation and example compilation
+        shell: bash
+        run: |
+          python -m venv "$RUNNER_TEMP/cake-env"
+          "$RUNNER_TEMP/cake-env/bin/pip" install dist/*.whl
+          cd "$RUNNER_TEMP"
+          for name in launch target trail; do
+            "$RUNNER_TEMP/cake-env/bin/cake" "$GITHUB_WORKSPACE/examples/$name.cake" --namespace "$name" --output "$RUNNER_TEMP/packs/$name"
+            diff -r "$GITHUB_WORKSPACE/tests/fixtures/$name" "$RUNNER_TEMP/packs/$name"
+          done
