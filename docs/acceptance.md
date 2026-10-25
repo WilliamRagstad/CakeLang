@@ -10,8 +10,9 @@ Use an isolated Java 1.20.4 client/world or server with its EULA accepted by the
 operator. Enable cheats/operator permissions and use Easy or higher difficulty.
 
 - [ ] Record exact client/server version, date, operator, and server log.
-- [ ] Install all three freshly compiled packs and run /reload.
-- [ ] Confirm /datapack list enabled contains all three; inspect logs for errors.
+- [ ] Install all four freshly compiled packs and run /reload.
+- [ ] Confirm /datapack list enabled contains all four; inspect logs for errors.
+- [ ] greet_random:main broadcasts three greetings naming nearby players; verify both def and macro forms.
 - [ ] launch:main lifts the executing player and they land slowly.
 - [ ] target:main gives bow/arrows and spawns a stationary husk eight blocks south.
 - [ ] Shoot the husk; target:cleanup removes surviving tagged targets within 32 blocks.
@@ -28,7 +29,7 @@ Do not mark this checklist complete based only on command text inspection.
    location-bearing failures, explicit subset.
 2. Datapack generation: 1.20.4 metadata, functions, lifecycle tags, safe new
    output directory, deterministic fixture tests.
-3. Examples and accurate documentation: three runnable example sources,
+3. Examples and accurate documentation: four runnable example sources,
    complete output fixtures, clean-wheel CI, and this pending gameplay gate.
 
 The third change remains a draft until the Minecraft acceptance gate is recorded.

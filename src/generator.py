@@ -3,7 +3,7 @@ from .checker import check
 from .types.datapack import DataPack
 
 def generate(program, namespace="cake", filepath="<string>", debug=False):
-    check(program, filepath)
+    program = check(program, filepath)
     functions = {}
     for name, body in program.functions.items():
         commands = []

@@ -19,7 +19,7 @@ jobs:
           python -m venv "$RUNNER_TEMP/cake-env"
           "$RUNNER_TEMP/cake-env/bin/pip" install dist/*.whl
           cd "$RUNNER_TEMP"
-          for name in launch target trail; do
+          for name in launch target trail greet_random; do
             "$RUNNER_TEMP/cake-env/bin/cake" "$GITHUB_WORKSPACE/examples/$name.cake" --namespace "$name" --output "$RUNNER_TEMP/packs/$name"
             diff -r "$GITHUB_WORKSPACE/tests/fixtures/$name" "$RUNNER_TEMP/packs/$name"
           done

@@ -18,7 +18,7 @@ class CompilerTests(unittest.TestCase):
 
     def test_errors_have_locations(self):
         for text in ['say("oops', 'say(', 'say("a",)', 'function f() {', 'say("a") + 1',
-                     'import player from minecraft', 'while(true) {}', 'x = 1',
+                     'import missing from minecraft', 'while(true) {}', 'x = 1',
                      'macro f() {}', 'unknown("x")', 'call("missing")',
                      'command("/say hi")', 'say("a\\nb")', 'function main() {}',
                      'function A() {}', 'say("a" "b")', 'say("\\ud800")']:
@@ -27,7 +27,7 @@ class CompilerTests(unittest.TestCase):
 
     def test_line_column(self):
         with self.assertRaisesRegex(CakeError, "test.cake:2:3:"):
-            analyze('# comment\n  import x')
+            analyze('# comment\n  unknown()')
 
 if __name__ == "__main__":
     unittest.main()

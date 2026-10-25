@@ -5,7 +5,7 @@ from .checker import check
 
 def analyze(filepath, debug=False):
     program = parse(tokenize(filepath), str(filepath))
-    check(program, str(filepath))
+    program = check(program, str(filepath))
     if debug:
         print(program)
     return program
