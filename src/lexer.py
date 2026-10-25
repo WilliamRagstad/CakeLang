@@ -40,11 +40,23 @@ def lex(text, filepath="<string>"):
             except ValueError:
                 fail("invalid or unterminated JSON string", token, filepath)
             tokens.append(Token("string", value, line, column))
-        elif c.isascii() and (c.isalpha() or c == "_"):
-            value = re.match(r"[A-Za-z_][A-Za-z_0-9]*", text[i:])[0]
+        elif c.isascii() and c.isdigit():
+            value = re.match(r"[0-9]+(?:\.[0-9]+)?", text[i:])[0]
+            length = len(value)
+            if length > 100:
+                fail("numeric literal is too long", token, filepath)
+            tokens.append(Token("number", float(value) if "." in value else int(value), line, column))
+        elif text.startswith("<=", i):
+            tokens.append(Token("<=", "<=", line, column))
+            length = 2
+        elif c.isascii() and (c.isalpha() or c in "_@"):
+            match = re.match(r"@?[A-Za-z_][A-Za-z_0-9]*", text[i:])
+            if match is None:
+                fail("expected a selector name after @", token, filepath)
+            value = match[0]
             length = len(value)
             tokens.append(Token("name", value, line, column))
-        elif c in "(){};,":
+        elif c in "(){}[];,:=.+-*/":
             tokens.append(token)
             length = 1
         else:

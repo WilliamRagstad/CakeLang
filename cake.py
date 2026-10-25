@@ -11,9 +11,14 @@ def main(argv=None):
     parser.add_argument("--version", action="version", version="Cake 0.2.0")
     parser.add_argument("-l", "--lint", action="store_true")
     parser.add_argument("--debug", action="store_true")
+    parser.add_argument("-o", "--output", help="new output directory (default: build/SOURCE_STEM)")
+    parser.add_argument("-n", "--namespace", default="cake")
     args = parser.parse_args(argv)
     try:
-        (lint if args.lint else compile)(args.source, args.debug)
+        if args.lint:
+            lint(args.source, args.debug)
+        else:
+            compile(args.source, args.debug, args.output, args.namespace)
     except (CakeError, OSError, UnicodeError, ValueError) as error:
         print(error, file=sys.stderr)
         return 1
