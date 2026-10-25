@@ -10,5 +10,11 @@ def analyze(filepath, debug=False):
         print(program)
     return program
 
-def compile(filepath, debug=False):
-    return analyze(filepath, debug)
+def compile(filepath, debug=False, output=None, namespace="cake"):
+    from pathlib import Path
+    from .generator import generate
+    pack = generate(analyze(filepath, debug), namespace, str(filepath))
+    if output is None:
+        output = Path("build") / Path(filepath).stem
+    pack.write(output)
+    return pack
