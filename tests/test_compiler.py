@@ -18,8 +18,8 @@ class CompilerTests(unittest.TestCase):
 
     def test_errors_have_locations(self):
         for text in ['say("oops', 'say(', 'say("a",)', 'function f() {', 'say("a") + 1',
-                     'import missing from minecraft', 'while(true) {}', 'x = 1',
-                     'macro f() {}', 'unknown("x")', 'call("missing")',
+                     'import missing from minecraft', 'while(true) {}', 'x = missing',
+                     'macro f() { missing }', 'unknown("x")', 'call("missing")',
                      'command("/say hi")', 'say("a\\nb")', 'function main() {}',
                      'function A() {}', 'say("a" "b")', 'say("\\ud800")']:
             with self.subTest(text=text), self.assertRaisesRegex(CakeError, r"test.cake:\d+:\d+:"):

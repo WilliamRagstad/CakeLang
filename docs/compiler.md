@@ -1,13 +1,14 @@
-# Implemented compiler subset
+# Cake compiler: implemented language and backend
 
-Cake compiles a deliberately small language subset to **Minecraft Java Edition
-1.20.4** datapacks (pack format **26**). Python 3.10+ is required.
-There are no runtime Python dependencies. Other Minecraft versions and Bedrock
-Edition are not supported.
+The README describes Cake's direction. This document describes the compiler
+implemented in this branch: a language with reusable functions, structured data,
+and Minecraft-inspired operations, targeting **Minecraft Java Edition 1.20.4**
+(datapack format **26**). It is an initial subset, not a complete implementation
+of the language envisioned in the README.
 
-## Install and run
+## Install and compile
 
-From a checkout:
+Python 3.10+ is required. There are no runtime Python dependencies.
 
 ```sh
 python -m venv .venv
@@ -20,120 +21,186 @@ cake examples/greet_random.cake --namespace greet_random --output build/greet_ra
 python -m unittest discover -v
 ```
 
-Windows users can activate with `.venv\Scripts\activate`.
-The installed `cake` command works outside the checkout. `python cake.py` also
-works from the checkout. `cake --help` lists options; `--lint` validates without
-writing. Errors go to stderr with a nonzero exit code and source line/column.
-Output defaults to `build/SOURCE_STEM`, namespace to `cake`. Use distinct
-namespaces when installing multiple packs. Existing output directories are
-refused: remove an old *generated* pack or choose a new output path.
+Windows activation: `.venv\Scripts\activate`. The installed `cake` command works
+outside the checkout; `python cake.py` works inside it. `--lint` validates without
+writing. Errors include source path, line and column, and produce a nonzero exit
+code. Output defaults to `build/SOURCE_STEM`, namespace to `cake`. Existing output
+directories are refused. Choose a new output path or remove an old generated pack.
 
-## Supported language
+## Functions and data
 
 ```text
-# Comments run to the end of a line.
-say("Hello world");
-call("greet");
-function greet() {
-    command("give @s minecraft:cookie 1");
+def makeBoost(kind, seconds) {
+    return { kind: kind, duration: seconds * 2, amplifier: 1 };
 }
+
+def applyEffects(target, recipe) {
+    as(target, {
+        forEach(recipe, boost, {
+            effect(@s, boost.kind, boost.duration, boost.amplifier);
+        });
+    });
+}
+
+flight = [
+    makeBoost(minecraft:levitation, 2),
+    { kind: minecraft:slow_falling, duration: 20, amplifier: 0 }
+];
+applyEffects(@s, flight);
 ```
 
-A program contains top-level calls and zero-argument function declarations.
-Top-level calls become `NAMESPACE:main`; they do not run automatically.
-Functions named `load` and `tick` register in Minecraft's load and tick tags.
-Other functions run through `call("name")` or Minecraft's `/function` command.
-Calls may refer to functions declared later. Semicolons are optional.
-Function names use `[a-z_][a-z0-9_]*`; `main` is reserved.
+Functions declared with `def` accept numbers, strings, booleans, selectors,
+resource IDs, records, and lists. They can call other definitions, perform
+operations, and return values. `macro` is currently an alias for `def`.
+An explicit `return` must be the final statement. The final expression is also
+an implicit return, preserving selector definitions such as `randomClose`.
 
-| Call | Output |
-| --- | --- |
-| `say("text")` | `say text` |
-| `command("Minecraft command")` | The command verbatim, without a leading slash |
-| `call("local_function")` | `function namespace:local_function` |
+Bindings (`name = expression`) are immutable within their scope. Records use
+`{ field: expression }`, fields use `record.field`, and lists use `[a, b]`.
+Empty `{}` in a value context is an empty record. Functions use lexical scope:
+parameters and local bindings take precedence over top-level bindings; caller
+locals do not leak into called functions. Top-level values must be bound before
+a top-level call uses them. Runtime entry points see the completed top-level
+bindings. Parameters may shadow globals.
 
-Arguments must be JSON-style double-quoted strings. Escaped quotes, backslashes,
-and Unicode are supported; empty/whitespace-only strings and control characters
-are rejected. The one-argument form does not interpolate Cake expressions.
-Minecraft interprets selectors and command text at execution time.
-**Cake does not validate Minecraft command grammar**, resource IDs, permissions,
-or runtime success. Command syntax must match Java 1.20.4. Function calls inherit
-Minecraft's execution context; load/tick have server context, so use
-`execute as ... at ...` when a player or position is needed.
-Recursive calls are permitted and subject to Minecraft's command limits.
+Numeric `+`, `-`, `*`, `/`, unary minus and parentheses are supported with
+standard precedence. Division produces a floating-point value. Booleans are
+`true` and `false`, distinct from numbers. Record/list values do not support
+mutation, indexing, or arbitrary methods yet.
 
-## Selector definitions and repetition
+These values, arithmetic, parameter passing, and `def` calls are evaluated at
+**compile time**. They configure and compose Minecraft behavior; they are not
+yet runtime heap objects or scoreboard-backed variables. Selector values
+describe selections evaluated by Minecraft at runtime. Generic function names,
+scope and recursion are checked even when unused; argument-dependent field and
+type checks occur when a function is instantiated. Recursion is not supported
+for compile-time definitions.
 
-The README describes the language's direction and remains unchanged. The compiler
-currently also supports this program (see examples/greet_random.cake):
+## Control and execution context
+
+- `repeat(count, { ... })` expands a block in order. The count is an integer
+  from 0 to 1024; even a zero-count block is validated.
+- `forEach(list, item, { ... })` instantiates a block once per list element.
+  The iteration binding is scoped to the block. Empty lists emit nothing;
+  argument-dependent type checks require an iteration.
+- `as(selector, { ... })` binds the selection at runtime, sets the execution
+  position to each selected entity, and executes the entire block in that
+  context. The backend generates a helper function, so a random selector is
+  resolved once for the block. Use `@s` inside to refer to that entity.
+
+The backend limits generated commands to 10,000, list iterations to 1024,
+compile-time evaluation to 100,000 steps, and expression/call nesting to 64.
+The `__cake_` function prefix is reserved for compiler-generated helpers.
+
+## Selectors and Minecraft values
 
 ```text
 import player from minecraft
+
 def randomClose(maxRadius) {
     r(type=player, radius<=maxRadius)
 }
+
 repeat(3, {
     say(randomClose(10), "Hello {@s}!");
 });
 ```
 
-`def` and `macro` are equivalent compile-time selector definitions. Their bodies
-contain one selector expression; parameters are numeric. Definitions can call
-other definitions, including forward references, but cannot recurse. Both used
-and unused definitions are checked. These definitions emit no runtime function.
+Selectors are first-class values: `@s`, `@a`, `@p`, `@r`, `@e`, or filtered
+calls `s(...)`, `a(...)`, `p(...)`, `r(...)`, `e(...)`. Supported filters:
+`type=resource`, `radius<=number`, `tag="name"`, `limit=integer` (except on
+`s`). Radius becomes Minecraft's `distance=..number`. Resource IDs such as
+`minecraft:levitation` are typed values, not command strings. The current
+resource literal syntax is `namespace:identifier`; paths with slashes are not
+implemented. The only implemented import is `player from minecraft`.
 
-`r()` selects one random player. Its optional filters are `type=player` (requires
-the import above), `type=minecraft:player` (no import needed), and
-`radius<=number` (a nonnegative radius, translated to `distance=..number`).
-This subset supports only the player import and player entity type.
+The greeting above broadcasts three messages naming selected players.
+Each repetition selects independently; it may select the same player again.
+Radius is relative to the caller's position. The `{@s}` interpolation in
+two-argument `say` becomes a Minecraft selector text component.
 
-`repeat(integer, { statements })` expands its body at compile time, in order.
-Counts range from 0 to 1024; even a zero-count body is checked. Expanded programs
-are limited to 10,000 commands, and nesting is bounded.
+## Typed Minecraft operations
 
-`say(selector, "message")` executes as the selected player and broadcasts a
-JSON text message to all players. `{@s}` becomes a selector text component
-showing that player's name. Each repeated command selects independently, so
-three repetitions do not guarantee three distinct players. Radius is relative
-to the calling position: run from player chat or with `execute at`.
-The one-argument `say("text")` form remains a literal Minecraft say command.
+Operations accept positional arguments followed by optional named arguments.
+For example, `effect(@s, minecraft:speed, duration=5, amplifier=2)`.
+Names below are the argument names accepted by the compiler.
 
-Other modules, variables, assignments, arithmetic, other selector filters,
-other interpolation selectors, conditionals, general loops, runtime function
-parameters, return statements, and nested definitions fail explicitly.
-Minecraft `execute` may be used inside `command`.
-Historical examples in examples/legacy use additional unsupported constructs.
+| Operation | Required arguments | Optional arguments |
+| --- | --- | --- |
+| `effect` | `target, effect, duration` | `amplifier=0, hideParticles=true` |
+| `give` | `target, item` | `count=1` |
+| `tag` | `target, name` | `enabled=true` (false removes the tag) |
+| `kill` | `target` | — |
+| `summon` | `entity, position` | `data={}` |
+| `particle` | `target, particle, position, spread` | `speed=0, count=1, force=true` |
 
-## Try the examples
+Targets are selectors; effect, item, entity and particle IDs are resources.
+Durations, amplifiers, counts, booleans and vector fields are type/range checked.
+Effect durations are seconds; amplifiers are zero-based.
+Positions and spreads are records with exactly `x, y, z` numeric fields.
+Positions are relative to the execution position, and spreads are nonnegative.
 
-Copy the generated directories directly into
-`<world>/datapacks/`. Each directory must contain `pack.mcmeta` at its root.
-Use Java **1.20.4**, enable cheats or operator permission, then run `/reload`
-and `/datapack list enabled`.
+`summon` accepts structured data fields `noAI`, `persistent`, `tags` (a list of
+strings), and `name`; the backend serializes SNBT and JSON text safely.
+`particle` executes at each target and shows the particles to that target.
+Use player selectors for that operation. Command-specific block/item particle
+parameters are not implemented.
 
-Run these in player chat in a disposable test world:
+`say("text")` emits a literal Minecraft say command.
+`say(selector, "Hello {@s}!")` executes as the selected entity and broadcasts
+a JSON text message. Strings use JSON double-quote/escape syntax; control
+characters and empty/whitespace-only strings are rejected.
 
-- `/function greet_random:main`: greets a random player within 10 blocks three times.
-- `/function launch:main`: a short levitation ride with slow falling.
-- `/function target:main`: gives a bow and arrows and spawns a stationary husk
-  eight blocks south. Shoot it; `/function target:cleanup` removes tagged targets
-  within 32 blocks. Use an open area and Easy or higher difficulty.
+Minecraft resource existence and game-dependent applicability are not checked
+against a registry. For example, effects require living entities and give
+requires players. The target game version remains 1.20.4.
+
+`command("...")` remains a low-level escape hatch for unsupported operations.
+It is not used by any supported example. Raw commands receive no Minecraft
+grammar validation; they cannot start with a slash or comment marker.
+
+## Runtime entry points and pack output
+
+Top-level operations become `namespace:main`; they do not run automatically.
+Zero-argument `function name() { ... }` declarations produce callable runtime
+functions. Invoke them with `name()`, `call("name")`, or Minecraft's
+`/function namespace:name`. Functions named `load` and `tick` register in
+Minecraft lifecycle tags. They run in server context; use `as` to bind players.
+
+Runtime function names use `[a-z_][a-z0-9_]*`; `main` and `__cake_*` are
+reserved. Runtime calls inherit Minecraft's execution context and command
+limits. Unlike `def`, runtime functions have no parameter or return protocol
+yet. Runtime mutation, general branching, dynamic loops, broader modules,
+classes, and general runtime data structures remain future work. Unsupported
+syntax fails explicitly rather than silently generating empty commands.
+
+## Play the examples
+
+Copy each generated pack directory into `<world>/datapacks/`, with
+`pack.mcmeta` directly inside that directory. Use Java **1.20.4** with
+cheats/operator permissions, then run `/reload` and `/datapack list enabled`.
+
+- `/function launch:main`: applies a data-driven flight recipe to the player.
+- `/function target:main`: equips a bow/arrows and spawns a stationary husk
+  eight blocks south. Use an open area on Easy or higher difficulty.
+  `/function target:cleanup` removes tagged targets within 32 blocks.
 - `/function trail:main`: enables a personal particle trail.
-  Walk around; `/function trail:stop` disables it.
+  `/function trail:stop` disables it.
+- `/function greet_random:main`: greets nearby random players three times.
 
-The examples change player effects, inventory, tags, and entities.
-They do not place blocks. Target drops and given items can remain after cleanup.
-Trail tags persist through reloads; stop the trail before removing the pack.
+Examples change effects, inventory, tags and entities, not blocks. Given items
+and target drops can remain. Trail tags persist through reloads; stop the trail
+before removing the pack.
 
-## Verification status
+## Verification
 
-Automated tests cover source errors, unsupported syntax, CLI behavior, all four
-example outputs, and exact datapack trees/commands against committed fixtures.
-CI builds and installs a wheel into a fresh environment and compiles all four examples.
+Tests cover language semantics, error locations, unsupported syntax,
+execution-context helpers, CLI behavior, and complete output fixtures for all
+four examples. CI installs a wheel into a fresh environment and compiles every
+example outside the checkout on Python 3.10, 3.12 and 3.14.
 
-**Minecraft acceptance is incomplete.** No live 1.20.4 client/server playthrough
-has been performed for this change. Fixtures establish compiler output, not
-gameplay correctness. Follow [the acceptance checklist](acceptance.md)
-before calling the examples game-verified.
+**Minecraft acceptance remains incomplete.** No live 1.20.4 playthrough has been
+performed. Follow [the runtime checklist](acceptance.md); compiler fixtures do
+not establish game execution.
 
-Format reference: https://minecraft.wiki/w/Data_pack
+Pack format reference: https://minecraft.wiki/w/Data_pack

@@ -1,1 +1,1 @@
-execute at @s run kill @e[type=minecraft:husk,tag=cake_target,distance=..32]
+execute as @s at @s run function target:__cake_2

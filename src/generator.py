@@ -15,6 +15,9 @@ def generate(program, namespace="cake", filepath="<string>", debug=False):
                 commands.append(value)
             elif kind == "call":
                 commands.append(f"function {namespace}:{value}")
+            elif kind == "execute_call":
+                prefix, target = value
+                commands.append(f"{prefix} run function {namespace}:{target}")
             else:
                 raise ValueError(f"unsupported statement: {kind}")
         functions[name] = commands

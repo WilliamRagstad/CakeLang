@@ -21,7 +21,7 @@ class LanguageTests(unittest.TestCase):
         commands = self.commands('def near(n) { r(radius<=n) } say(near(2.5), "Hi"); say(near(20), "Bye");')
         self.assertIn("distance=..2.5", commands[0])
         self.assertIn("distance=..20", commands[1])
-        self.assertEqual(self.commands('def a(n) { b(n) } def b(n) { r(radius<=n) } say(a(3), "ok")'),
+        self.assertEqual(self.commands('def outer(n) { inner(n) } def inner(n) { r(radius<=n) } say(outer(3), "ok")'),
                          ['execute as @r[distance=..3] at @s run tellraw @a [{"text":"ok"}]'])
 
     def test_invalid_constructs(self):
@@ -34,8 +34,8 @@ class LanguageTests(unittest.TestCase):
             'def near(n) { r(radius<=n) } say(near("2"), "hello")',
             'def near(n) { r(radius<=missing) }',
             'def near(n,n) { r() }', 'def say(n) { r() }',
-            'def near(n) { r() r() }', 'def near(n) { n }',
-            'def a(n) { b(n) } def b(n) { a(n) }',
+            'def near(n) { unknown() }', 'def near(n) { missing }',
+            'def outer(n) { inner(n) } def inner(n) { outer(n) }',
             'repeat(1.5, {say("hi")})', 'repeat(1025, {say("hi")})',
             'repeat(2, "hi")', 'repeat(0, {unknown()})',
             'repeat(1024, {repeat(1024, {say("hi")})})',

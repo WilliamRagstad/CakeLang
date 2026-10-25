@@ -49,11 +49,14 @@ def lex(text, filepath="<string>"):
         elif text.startswith("<=", i):
             tokens.append(Token("<=", "<=", line, column))
             length = 2
-        elif c.isascii() and (c.isalpha() or c == "_"):
-            value = re.match(r"[A-Za-z_][A-Za-z_0-9]*", text[i:])[0]
+        elif c.isascii() and (c.isalpha() or c in "_@"):
+            match = re.match(r"@?[A-Za-z_][A-Za-z_0-9]*", text[i:])
+            if match is None:
+                fail("expected a selector name after @", token, filepath)
+            value = match[0]
             length = len(value)
             tokens.append(Token("name", value, line, column))
-        elif c in "(){};,:=":
+        elif c in "(){}[];,:=.+-*/":
             tokens.append(token)
             length = 1
         else:
