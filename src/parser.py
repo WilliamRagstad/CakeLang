@@ -157,7 +157,7 @@ def parse(tokens, filepath="<string>", debug=False):
             if tokens[index].kind != ")":
                 while True:
                     param = take("name")
-                    if not re.fullmatch(r"[A-Za-z_][A-Za-z_0-9]*", param.value):
+                    if not re.fullmatch(r"[A-Za-z_][A-Za-z_0-9]*", param.value) or param.value in ("true", "false"):
                         fail("invalid parameter name", param, filepath)
                     if param.value in params:
                         fail("duplicate parameter", param, filepath)

@@ -42,6 +42,8 @@ class Checker:
             if depth > 64:
                 self.error("expression nesting exceeds 64", node)
             if node.kind == "assign":
+                if not re.fullmatch(r"[A-Za-z_][A-Za-z_0-9]*", node.value) or node.value in ("true", "false"):
+                    self.error("invalid binding name", node)
                 if node.value in names or node.value in BUILTINS or node.value in self.program.definitions:
                     self.error(f"duplicate or reserved binding {node.value!r}", node)
                 self.validate(node.args, names, in_def, depth + 1)
@@ -52,6 +54,8 @@ class Checker:
                     self.error("return must be the final statement of a def/macro", node)
             if node.kind == "name":
                 value = node.value
+                if ":" in value and not re.fullmatch(r"[a-z0-9_.-]+:[a-z0-9_./-]+", value):
+                    self.error("Minecraft resource IDs must be lowercase resource names", node)
                 if not (value in names or value in ("true", "false", "@s", "@a", "@p", "@r", "@e")
                         or ":" in value or value in self.program.imports):
                     self.error(f"unknown name {value!r}", node)

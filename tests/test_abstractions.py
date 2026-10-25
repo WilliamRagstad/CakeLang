@@ -73,6 +73,10 @@ class AbstractionTests(unittest.TestCase):
     def test_invalid_types_scope_and_unsupported_constructs(self):
         cases = [
             'effect(@s, "minecraft:speed", 3)',
+            'effect(@s, Minecraft:Speed, 3)',
+            '@s = "invalid";',
+            'true = 1;',
+            'def invalid(true) { true }',
             'effect(@s, minecraft:speed, true)',
             'effect(@s, minecraft:speed, 0)',
             'effect(@s, minecraft:speed, 2.5)',
