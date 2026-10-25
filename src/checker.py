@@ -1,17 +1,13 @@
-# Static analyzer and type checker
-from termcolor import colored as c
-from .types.program import Program
-from .types.environment import Environment
+"""Validate every supported statement before generation."""
+from .lexer import fail
 
-# === Global variables ===
-
-filepath = None
-debug = False
-
-def check(program: Program, _filepath: str, _debug: bool = False):
-	global debug, filepath
-	debug = _debug
-	filepath = _filepath
-	env = Environment.globalEnv()
-	if debug: print('>',c("Type checking...", "cyan"))
-	pass
+def check(program, filepath="<string>", debug=False):
+    for body in program.functions.values():
+        for statement in body:
+            value = statement.argument
+            if not value.strip() or any(ord(c) < 32 or ord(c) == 127 or 0xD800 <= ord(c) <= 0xDFFF for c in value):
+                fail("arguments must be nonempty single-line text without control characters", statement.token, filepath)
+            if statement.token.value == "call" and value not in program.functions:
+                fail(f"unknown function {value!r}", statement.token, filepath)
+            if statement.token.value == "command" and value.startswith(("/", "#")):
+                fail("command must not start with / or #", statement.token, filepath)

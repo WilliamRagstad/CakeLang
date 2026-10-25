@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cakelang"
+version = "0.2.0"
+description = "A small Minecraft Java 1.20.4 datapack compiler"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+cake = "cake:main"
+
+[tool.setuptools]
+py-modules = ["cake"]
+
+[tool.setuptools.packages.find]
+include = ["src", "src.*"]
