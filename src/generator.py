@@ -3,7 +3,7 @@ from .checker import check
 from .types.datapack import DataPack
 
 def generate(program, namespace="cake", filepath="<string>", debug=False):
-    check(program, filepath)
+    program = check(program, filepath)
     functions = {}
     for name, body in program.functions.items():
         commands = []
@@ -15,6 +15,9 @@ def generate(program, namespace="cake", filepath="<string>", debug=False):
                 commands.append(value)
             elif kind == "call":
                 commands.append(f"function {namespace}:{value}")
+            elif kind == "execute_call":
+                prefix, target = value
+                commands.append(f"{prefix} run function {namespace}:{target}")
             else:
                 raise ValueError(f"unsupported statement: {kind}")
         functions[name] = commands
